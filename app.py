@@ -26,8 +26,18 @@ st.title("🚀 SELF-EVOLVING ENGINE")
 user_input = st.text_input("Rabbit ko command dein (Hindi/Python/C++):")
 
 if user_input and api_key:
-    response = model.generate_content(user_input)
-    st.markdown(f"**Rabbit:** {response.text}")
+    # --- PURANE CODE KI JAGAH YE DAALEIN ---
+if user_input and api_key:
+    try:
+        with st.spinner("Rabbit dimaag chala raha hai..."):
+            response = model.generate_content(user_input)
+            if response.text:
+                st.markdown(f"**Rabbit:** {response.text}")
+            else:
+                st.warning("Rabbit ko koi jawab nahi mila. Dobara koshish karein.")
+    except Exception as e:
+        st.error(f"Opps! Brain connection mein dikkat hai: {e}")
+        st.info("Check karein: 1. API Key sahi hai? 2. Internet chal raha hai?")
 
 # --- 4. HCS & OFFICE SECTION ---
 tabs = st.tabs(["📚 HCS Academy", "📝 Drafting Desk"])
