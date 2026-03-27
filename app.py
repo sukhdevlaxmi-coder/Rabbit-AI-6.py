@@ -16,7 +16,7 @@ with st.sidebar:
     
     if api_key:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         st.success("Brain Active! ✅")
     else:
         st.warning("Key ka intezaar hai... ⏳")
