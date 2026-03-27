@@ -24,21 +24,18 @@ with st.sidebar:
 # --- 3. MAIN BODY ---
 st.title("🚀 SELF-EVOLVING ENGINE")
 user_input = st.text_input("Rabbit ko command dein (Hindi/Python/C++):")
-
+# --- Line 28 se check karein ---
 if user_input and api_key:
-    # --- PURANE CODE KI JAGAH YE DAALEIN ---
-if user_input and api_key:
-    try:    
+    try:
+        # Dekhiye yahan 4 spaces ka gap hai
         with st.spinner("Rabbit dimaag chala raha hai..."):
             response = model.generate_content(user_input)
             if response.text:
-                st.markdown(f"**Rabbit:** {response.text}")
+                st.markdown(f"<div class='chat-bubble'><b>Rabbit:</b> {response.text}</div>", unsafe_allow_html=True)
             else:
-                st.warning("Rabbit ko koi jawab nahi mila. Dobara koshish karein.")
+                st.warning("Rabbit ko jawab nahi mila.")
     except Exception as e:
-        st.error(f"Opps! Brain connection mein dikkat hai: {e}")
-        st.info("Check karein: 1. API Key sahi hai? 2. Internet chal raha hai?")
-
+        st.error(f"Brain Error: {e}")
 # --- 4. HCS & OFFICE SECTION ---
 tabs = st.tabs(["📚 HCS Academy", "📝 Drafting Desk"])
 with tabs[0]:
