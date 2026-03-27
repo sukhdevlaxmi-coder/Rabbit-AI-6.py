@@ -49,7 +49,7 @@ if st.button("EXECUTE EVOLUTION"):
                 rabbit_brain = genai.GenerativeModel('gemini-1.5-flash')
                 response = rabbit_brain.generate_content(instruction)
             
-                if response and response.text:
+            if response and response.text:
                 new_generated_code = response.text.replace("```python", "").replace("```", "")
                 # Baki ka update logic yahan...
                 st.success("Rabbit ne naya code soch liya hai!")
