@@ -4,25 +4,24 @@ import base64
 import requests
 
 # --- BASIC CONFIG ---
-st.set_page_config(page_title="RABBIT 12.0 - MASTER", layout="wide")
+st.set_page_config(page_title="RABBIT 12.0", layout="wide")
 
 # --- SIDEBAR: CORE SETTINGS ---
 with st.sidebar:
-    st.title("🐰 RABBIT CORE")
+    st.title("🐰 RABBIT CORE 12.0")
     st.markdown("---")
     gemini_key = st.text_input("Gemini API Key:", type="password")
     github_key = st.text_input("GitHub Token (PAT):", type="password")
     
-    # --- UPDATE THESE TWO LINES IF NEEDED ---
+    # PDF KE HISAB SE BILKUL SAHI NAAM
     repo_owner = "sukhdevlaxmi-coder"
-    # Yahan apni repository ka NAYA NAAM likhein (e.g., 'Rabbit-AI')
-    repo_name = st.text_input("GitHub Repo Name:", value="Rabbit-AI-6") 
-    file_path = "Rabbit-AI-6.py" 
+    repo_name = "Rabbit-Al-6.py" # Aapki repo ka asli naam yahi hai
+    file_path = "app.py"         # Aapki file ka asli naam yahi hai
 
     if gemini_key and github_key:
         try:
             genai.configure(api_key=gemini_key)
-            # 404 Error se bachne ke liye smart model selection
+            # 404 Error fix: Automatic model detection
             available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
             selected_model = 'models/gemini-1.5-flash' if 'models/gemini-1.5-flash' in available_models else available_models[0]
             
@@ -31,22 +30,24 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Setup Error: {e}")
 
-# --- FUNCTION: THE SELF-EVOLUTION ENGINE ---
+# --- FUNCTION: THE EVOLUTION ENGINE ---
 def evolve_rabbit(new_code):
     try:
-        # Naye repo name ke saath URL
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
         headers = {"Authorization": f"token {github_key}"}
         
+        # 1. Get SHA
         res = requests.get(url, headers=headers)
         if res.status_code == 200:
             sha = res.json()['sha']
+            # 2. Encode
             encoded_content = base64.b64encode(new_code.encode()).decode()
             data = {
-                "message": "Rabbit Evolution: Name Updated & Auto-Sync",
+                "message": "Rabbit 12.0 Evolution",
                 "content": encoded_content,
                 "sha": sha
             }
+            # 3. Update
             put_res = requests.put(url, headers=headers, json=data)
             return put_res.status_code
         else:
@@ -55,33 +56,27 @@ def evolve_rabbit(new_code):
         return str(e)
 
 # --- MAIN INTERFACE ---
-st.title("🚀 RABBIT SELF-EVOLUTION MODE")
-st.info("Sukhi Ram ji, ab Rabbit naye raste par doudne ke liye taiyar hai!")
+st.title("🚀 RABBIT 12.0 - SELF EVOLUTION")
+st.info(f"Connected to: {repo_name}/{file_path}")
 
-instruction = st.text_area("Rabbit ko kya badalna hai?", 
-                          placeholder="Example: Background light blue karo aur 'HCS Exam Prep' button banao.")
+instruction = st.text_area("Sukhi Ram ji, Rabbit ko kya naya sikhana hai?", 
+                          placeholder="Example: Background yellow karo aur HCS Exam Quiz ka button banao.")
 
 if st.button("EXECUTE EVOLUTION"):
     if instruction and gemini_key and github_key:
-        with st.spinner("Rabbit apna naya roop (Code) likh raha hai..."):
+        with st.spinner("Rabbit code likh raha hai..."):
             try:
-                # --- SMART MODEL DISCOVERY ---
-                # Ye line khud check karegi ki aapke API par kaunsa model zinda hai
-                models_list = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-                
-                # Agar 'models/gemini-1.5-flash' milta hai toh wo, nahi toh pehla available model
-                final_model_name = 'models/gemini-1.5-flash' if 'models/gemini-1.5-flash' in models_list else models_list[0]
-                
-                rabbit_brain = genai.GenerativeModel(final_model_name)
-                
+                # Instruction to rewrite the script but KEEP version 12.0
                 prompt = f"""
-                You are Rabbit AI. Your file name is {file_path}.
-                Based on this instruction: '{instruction}', rewrite the ENTIRE Streamlit app code.
-                STRICT RULE: Keep all imports, sidebar logic, and 'evolve_rabbit' function as they are.
+                You are Rabbit AI Version 12.0. 
+                Instruction: {instruction}.
+                STRICT RULE: Rewrite the ENTIRE Streamlit code. 
+                Keep the title as 'RABBIT 12.0' always.
+                Keep all imports, sidebar logic, and 'evolve_rabbit' function exactly as they are.
                 Return ONLY raw Python code. No markdown.
                 """
                 
-                response = rabbit_brain.generate_content(prompt)
+                response = model.generate_content(prompt)
                 
                 if response and response.text:
                     clean_code = response.text.strip()
@@ -91,9 +86,13 @@ if st.button("EXECUTE EVOLUTION"):
                     status = evolve_rabbit(clean_code)
                     
                     if status in [200, 201]:
-                        st.success(f"Mubarak ho! {final_model_name} use karke update ho gaya. 2 min baad refresh karein.")
+                        st.success("Mubarak ho! Rabbit 12.0 update ho gaya. 2 min baad refresh karein.")
                         st.balloons()
                     else:
-                        st.error(f"GitHub Error: {status}")
+                        st.error(f"GitHub Error {status}: Repo settings check karein.")
+                else:
+                    st.error("AI code generate nahi kar paya.")
             except Exception as e:
-                st.error(f"Evolution Error (Model Issue): {e}")
+                st.error(f"Evolution Error: {e}")
+    else:
+        st.warning("Pehle Keys aur Instruction bharein!")
