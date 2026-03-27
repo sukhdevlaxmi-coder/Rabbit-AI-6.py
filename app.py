@@ -1,45 +1,58 @@
 import streamlit as st
 import google.generativeai as genai
+import base64
+import requests
 
-# --- 1. SETTINGS ---
-st.set_page_config(page_title="RABBIT 9.0 - MASTER", layout="wide")
+# --- CONFIG ---
+st.set_page_config(page_title="RABBIT SELF-EVOLVER", layout="wide")
 
-# --- 2. SIDEBAR (Naya Sidebar Yahan Hai) ---
+# --- SIDEBAR: SECURE KEYS ---
 with st.sidebar:
-    st.title("🐰 RABBIT CONTROL")
-    # YAHAN AAYEGA API BOX
-    api_key = st.text_input("🔑 Enter Gemini API Key:", type="password")
+    st.title("🐰 RABBIT CORE")
+    gemini_key = st.text_input("Gemini API Key:", type="password")
+    github_key = st.text_input("GitHub Token (PAT):", type="password")
+    repo_name = "SukhiRam/Rabbit-AI-6" # Apna sahi repo name yahan likhein
     
-    st.write("---")
-    st.write("**Owner:** Sukhi Ram")
-    st.write("**Status:** Evolving...")
-    
-    if api_key:
-    try:
-        genai.configure(api_key=api_key)
-        # Naya Model Name Yahan Hai:
+    if gemini_key and github_key:
+        genai.configure(api_key=gemini_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
-        st.success("Brain Active with Gemini 1.5! ✅")
-    except Exception as e:
-        st.error(f"Setup Error: {e}")
-# --- 3. MAIN BODY ---
-st.title("🚀 SELF-EVOLVING ENGINE")
-user_input = st.text_input("Rabbit ko command dein (Hindi/Python/C++):")
-# --- Line 28 se check karein ---
-if user_input and api_key:
-    try:
-        # Dekhiye yahan 4 spaces ka gap hai
-        with st.spinner("Rabbit dimaag chala raha hai..."):
-            response = model.generate_content(user_input)
-            if response.text:
-                st.markdown(f"<div class='chat-bubble'><b>Rabbit:</b> {response.text}</div>", unsafe_allow_html=True)
+        st.success("Rabbit Brain & Hands Active! ✅")
+
+# --- FUNCTION: SELF UPDATE LOGIC ---
+def update_github_code(new_code):
+    url = f"https://api.github.com/repos/{repo_name}/contents/app.py"
+    headers = {"Authorization": f"token {github_key}"}
+    
+    # Purani file ki info lena (SHA hash ke liye)
+    res = requests.get(url, headers=headers)
+    sha = res.json()['sha']
+    
+    # Naya code upload karna
+    content = base64.b64encode(new_code.encode()).decode()
+    data = {
+        "message": "Rabbit Self-Evolution: New Feature Added",
+        "content": content,
+        "sha": sha
+    }
+    final_res = requests.put(url, headers=headers, json=data)
+    return final_res.status_code
+
+# --- MAIN INTERFACE ---
+st.title("🚀 AUTO-EVOLUTION MODE")
+instruction = st.text_area("Rabbit ko kya naya sikhna ya badalna hai?")
+
+if st.button("EXECUTE EVOLUTION"):
+    if instruction and gemini_key and github_key:
+        with st.spinner("Rabbit apna naya roop likh raha hai..."):
+            # Rabbit naya code generate karega
+            prompt = f"Improve the existing Streamlit app code to include: {instruction}. Return ONLY the full updated Python code."
+            response = model.generate_content(prompt)
+            new_generated_code = response.text.replace("```python", "").replace("```", "")
+            
+            # GitHub par khud ko update karna
+            status = update_github_code(new_generated_code)
+            
+            if status == 200 or status == 201:
+                st.success("Mubarak ho! Rabbit ne apna code khud update kar diya hai. 2 minute baad refresh karein.")
             else:
-                st.warning("Rabbit ko jawab nahi mila.")
-    except Exception as e:
-        st.error(f"Brain Error: {e}")
-# --- 4. HCS & OFFICE SECTION ---
-tabs = st.tabs(["📚 HCS Academy", "📝 Drafting Desk"])
-with tabs[0]:
-    st.write("76 Sets Database Online.")
-with tabs[1]:
-    st.write("Architecture Dept Templates Ready.")
+                st.error("GitHub update fail ho gaya. Token check karein.")
