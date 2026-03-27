@@ -30,7 +30,7 @@ with st.sidebar:
 # --- UPDATE FUNCTION ---
 def update_github_code(new_code):
     try:
-        url = f"https://api.github.com/repos/{repo_name}/contents/app.py"
+        url = f"https://api.github.com/repos/{repo_name}/contents/app.py"s
         headers = {"Authorization": f"token {github_key}"}
         res = requests.get(url, headers=headers)
         if res.status_code == 200:
