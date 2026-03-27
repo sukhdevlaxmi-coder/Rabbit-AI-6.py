@@ -33,7 +33,7 @@ def update_github_code(new_code):
         url = f"https://api.github.com/repos/{repo_name}/contents/app.py"
         headers = {"Authorization": f"token {github_key}"}
         res = requests.get(url, headers=headers)
-    if res.status_code == 200:
+        if res.status_code == 200:
             sha = res.json()['sha']
             content = base64.b64encode(new_code.encode()).decode()
             data = {"message": "Rabbit Self-Evolution", "content": content, "sha": sha}
