@@ -15,12 +15,13 @@ with st.sidebar:
     st.write("**Status:** Evolving...")
     
     if api_key:
+    try:
         genai.configure(api_key=api_key)
+        # Naya Model Name Yahan Hai:
         model = genai.GenerativeModel('gemini-1.5-flash')
-        st.success("Brain Active! ✅")
-    else:
-        st.warning("Key ka intezaar hai... ⏳")
-
+        st.success("Brain Active with Gemini 1.5! ✅")
+    except Exception as e:
+        st.error(f"Setup Error: {e}")
 # --- 3. MAIN BODY ---
 st.title("🚀 SELF-EVOLVING ENGINE")
 user_input = st.text_input("Rabbit ko command dein (Hindi/Python/C++):")
