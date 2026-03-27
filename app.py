@@ -63,19 +63,25 @@ instruction = st.text_area("Rabbit ko kya badalna hai?",
 
 if st.button("EXECUTE EVOLUTION"):
     if instruction and gemini_key and github_key:
-        with st.spinner("Rabbit naya code likh kar GitHub par bhej raha hai..."):
+        with st.spinner("Rabbit apna naya roop (Code) likh raha hai..."):
             try:
-                # Prompt to rewrite the entire script
+                # --- SMART MODEL DISCOVERY ---
+                # Ye line khud check karegi ki aapke API par kaunsa model zinda hai
+                models_list = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                
+                # Agar 'models/gemini-1.5-flash' milta hai toh wo, nahi toh pehla available model
+                final_model_name = 'models/gemini-1.5-flash' if 'models/gemini-1.5-flash' in models_list else models_list[0]
+                
+                rabbit_brain = genai.GenerativeModel(final_model_name)
+                
                 prompt = f"""
-                You are Rabbit AI. Current file: {file_path} in {repo_name}.
-                Instruction: {instruction}.
-                STRICT RULE: Rewrite the ENTIRE Streamlit code. 
-                Keep all imports, sidebar logic, and the 'evolve_rabbit' function exactly as they are.
-                Return ONLY raw Python code. No markdown or backticks.
+                You are Rabbit AI. Your file name is {file_path}.
+                Based on this instruction: '{instruction}', rewrite the ENTIRE Streamlit app code.
+                STRICT RULE: Keep all imports, sidebar logic, and 'evolve_rabbit' function as they are.
+                Return ONLY raw Python code. No markdown.
                 """
                 
-                # Using the smart model selected in sidebar
-                response = model.generate_content(prompt)
+                response = rabbit_brain.generate_content(prompt)
                 
                 if response and response.text:
                     clean_code = response.text.strip()
@@ -85,13 +91,9 @@ if st.button("EXECUTE EVOLUTION"):
                     status = evolve_rabbit(clean_code)
                     
                     if status in [200, 201]:
-                        st.success("Mubarak ho! Code update ho gaya. 2 minute rukiye aur refresh karein.")
+                        st.success(f"Mubarak ho! {final_model_name} use karke update ho gaya. 2 min baad refresh karein.")
                         st.balloons()
                     else:
-                        st.error(f"GitHub Error {status}: Repo name ya Token check karein.")
-                else:
-                    st.error("AI code generate nahi kar paya.")
+                        st.error(f"GitHub Error: {status}")
             except Exception as e:
-                st.error(f"Evolution Error: {e}")
-    else:
-        st.warning("Pehle Keys aur Instruction bharein!")
+                st.error(f"Evolution Error (Model Issue): {e}")
