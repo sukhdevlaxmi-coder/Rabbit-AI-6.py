@@ -80,4 +80,19 @@ if st.button("EXECUTE EVOLUTION"):
                 response = model.generate_content(prompt)
                 
                 if response and response.text:
-                    clean_code = response.text.strip().
+                    clean_code = response.text.strip().replace("```python", "").replace("```", "")
+                    
+                    # Self-Update via GitHub API
+                    status = evolve_rabbit(clean_code)
+                    
+                    if status in [200, 201]:
+                        st.success("Mubarak ho! Update ho gaya. 2 minute rukiye aur refresh karein.")
+                        st.balloons()
+                    else:
+                        st.error(f"GitHub Error {status}: Check Token permissions (repo scope).")
+                else:
+                    st.error("AI code generate nahi kar paya. Dobara try karein.")
+            except Exception as e:
+                st.error(f"Evolution Error: {e}")
+    else:
+        st.warning("Pehle Keys aur Instruction bharein!")
