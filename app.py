@@ -13,17 +13,17 @@ with st.sidebar:
     repo_name = st.text_input("Repo (e.g. Sukhdev-Laxmi/Rabbit-AI-6):", value="Sukhdev-Laxmi/Rabbit-AI-6")
     
     if gemini_key and github_key:
-    try:
-        # Purane setup ki jagah ye likhein
-        genai.configure(api_key=gemini_key)
+        try:
+            # Purane setup ki jagah ye likhein
+            genai.configure(api_key=gemini_key)
         
-        # Naya aur fast model jo 404 error nahi dega
-        model = genai.GenerativeModel('gemini-1.5-flash')
+            # Naya aur fast model jo 404 error nahi dega
+            model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Ek test call check karne ke liye ki model mil raha hai ya nahi
-        st.success("Rabbit Brain Active (v1.5 Flash)! ✅")
-    except Exception as e:
-        st.error(f"Setup Error: {e}")
+            # Ek test call check karne ke liye ki model mil raha hai ya nahi
+            st.success("Rabbit Brain Active (v1.5 Flash)! ✅")
+        except Exception as e:
+            st.error(f"Setup Error: {e}")
 
             # Is line ko update karein
             genai.configure(api_key=gemini_key)
