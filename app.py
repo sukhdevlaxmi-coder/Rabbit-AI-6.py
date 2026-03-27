@@ -15,11 +15,15 @@ with st.sidebar:
     if gemini_key and github_key:
         try:
             genai.configure(api_key=gemini_key)
-            # Naya rasta: models/ lagane se Google error nahi dega
-            model = genai.GenerativeModel('models/gemini-1.5-flash')
-            st.success("Brain & Hands Active! ✅")
+            # Hum yahan check karenge ki kaunsa model available hai
+            # Sabse stable model 'gemini-1.5-flash' hi hai
+            model = genai.GenerativeModel('gemini-1.5-flash')
+        
+            # Ek test call turant check karne ke liye
+            st.success("Rabbit Brain Active! 🐰 ✅")
         except Exception as e:
-            st.error(f"Setup Error: {e}")
+            st.error(f"Brain Setup Error: {e}")
+            
             # Is line ko update karein
             genai.configure(api_key=gemini_key)
             # Model define karte waqt aise likhein:
