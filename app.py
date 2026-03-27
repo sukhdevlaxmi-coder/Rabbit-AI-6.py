@@ -15,21 +15,17 @@ with st.sidebar:
     if gemini_key and github_key:
         try:
             genai.configure(api_key=gemini_key)
-            # Hum yahan check karenge ki kaunsa model available hai
-            # Sabse stable model 'gemini-1.5-flash' hi hai
-            model = genai.GenerativeModel('gemini-1.5-flash')
         
-            # Ek test call turant check karne ke liye
-            st.success("Rabbit Brain Active! 🐰 ✅")
+            # Ye line available models ki list mangwayegi
+            models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        
+            # Agar flash model list mein hai toh wahi use karein, nahi toh pehla available model
+            selected_model = 'models/gemini-1.5-flash' if 'models/gemini-1.5-flash' in models else models[0]
+        
+            model = genai.GenerativeModel(selected_model)
+            st.success(f"Brain Active with {selected_model}! ✅")
         except Exception as e:
-            st.error(f"Brain Setup Error: {e}")
-            
-            # Is line ko update karein
-            genai.configure(api_key=gemini_key)
-            # Model define karte waqt aise likhein:
-            model = genai.GenerativeModel(model_name='gemini-1.5-flash') 
-            # Ya phir agar ye na chale toh:
-            # model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+            st.error(f"Brain Connection Error: {e}")            
 
 # --- UPDATE FUNCTION ---
 def update_github_code(new_code):
