@@ -14,17 +14,12 @@ with st.sidebar:
     
     if gemini_key and github_key:
         try:
-            # Purane setup ki jagah ye likhein
             genai.configure(api_key=gemini_key)
-        
-            # Naya aur fast model jo 404 error nahi dega
-            model = genai.GenerativeModel('gemini-1.5-flash')
-        
-            # Ek test call check karne ke liye ki model mil raha hai ya nahi
-            st.success("Rabbit Brain Active (v1.5 Flash)! ✅")
+            # Naya rasta: models/ lagane se Google error nahi dega
+            model = genai.GenerativeModel('models/gemini-1.5-flash')
+            st.success("Brain & Hands Active! ✅")
         except Exception as e:
             st.error(f"Setup Error: {e}")
-
             # Is line ko update karein
             genai.configure(api_key=gemini_key)
             # Model define karte waqt aise likhein:
