@@ -16,10 +16,18 @@ with st.sidebar:
         try:
             genai.configure(api_key=gemini_key)
             # Latest Model Name
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-pro')
             st.success("Brain & Hands Active! ✅")
         except Exception as e:
             st.error(f"Setup Error: {e}")
+            import google.generativeai as genai
+
+            # Is line ko update karein
+            genai.configure(api_key=gemini_key)
+            # Model define karte waqt aise likhein:
+            model = genai.GenerativeModel(model_name='gemini-1.5-flash') 
+            # Ya phir agar ye na chale toh:
+            # model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
 
 # --- UPDATE FUNCTION ---
 def update_github_code(new_code):
