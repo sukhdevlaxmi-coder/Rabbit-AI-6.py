@@ -23,7 +23,7 @@ with st.sidebar:
         try:
             genai.configure(api_key=gemini_key)
             # Latest stable model for automation
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('models/gemini-1.5-flash')
             st.success("Brain & Hands Active! ✅")
         except Exception as e:
             st.error(f"Setup Error: {e}")
