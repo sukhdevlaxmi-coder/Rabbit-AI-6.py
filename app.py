@@ -4,50 +4,49 @@ import base64
 import requests
 
 # --- BASIC CONFIG ---
-st.set_page_config(page_title="RABBIT 11.0 - SELF-EVOLVER", layout="wide")
+st.set_page_config(page_title="RABBIT 12.0 - MASTER", layout="wide")
 
 # --- SIDEBAR: CORE SETTINGS ---
 with st.sidebar:
     st.title("🐰 RABBIT CORE")
     st.markdown("---")
-    # Yahan apni keys bharein
     gemini_key = st.text_input("Gemini API Key:", type="password")
     github_key = st.text_input("GitHub Token (PAT):", type="password")
     
-    # Aapki Repository Details
+    # --- UPDATE THESE TWO LINES IF NEEDED ---
     repo_owner = "sukhdevlaxmi-coder"
-    repo_name = "Rabbit-AI-6"
+    # Yahan apni repository ka NAYA NAAM likhein (e.g., 'Rabbit-AI')
+    repo_name = st.text_input("GitHub Repo Name:", value="Rabbit-AI-6") 
     file_path = "Rabbit-AI-6.py" 
 
     if gemini_key and github_key:
         try:
             genai.configure(api_key=gemini_key)
-            # Hum yahan check karenge ki kaunsa model available hai
-            # Sabse stable model 'gemini-1.5-flash' hi hai
-            model = genai.GenerativeModel('gemini-1.5-flash')
-        
-            # Ek test call turant check karne ke liye
-            st.success("Rabbit Brain Active! 🐰 ✅")
+            # 404 Error se bachne ke liye smart model selection
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            selected_model = 'models/gemini-1.5-flash' if 'models/gemini-1.5-flash' in available_models else available_models[0]
+            
+            model = genai.GenerativeModel(selected_model)
+            st.success(f"Brain Active: {selected_model} ✅")
         except Exception as e:
-            st.error(f"Brain Setup Error: {e}")
+            st.error(f"Setup Error: {e}")
+
 # --- FUNCTION: THE SELF-EVOLUTION ENGINE ---
 def evolve_rabbit(new_code):
     try:
+        # Naye repo name ke saath URL
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
         headers = {"Authorization": f"token {github_key}"}
         
-        # 1. Purani file ka SHA hash lena (Update ke liye zaroori hai)
         res = requests.get(url, headers=headers)
         if res.status_code == 200:
             sha = res.json()['sha']
-            # 2. Naye code ko Base64 mein badalna
             encoded_content = base64.b64encode(new_code.encode()).decode()
             data = {
-                "message": "Rabbit Evolution: Automatic Self-Update",
+                "message": "Rabbit Evolution: Name Updated & Auto-Sync",
                 "content": encoded_content,
                 "sha": sha
             }
-            # 3. GitHub par naya code Push (Update) karna
             put_res = requests.put(url, headers=headers, json=data)
             return put_res.status_code
         else:
@@ -56,42 +55,42 @@ def evolve_rabbit(new_code):
         return str(e)
 
 # --- MAIN INTERFACE ---
-st.title("🚀 RABBIT AUTO-EVOLUTION MODE")
-st.info("Sukhi Ram ji, Rabbit ab khud code likhega aur khud ko update karega!")
+st.title("🚀 RABBIT SELF-EVOLUTION MODE")
+st.info("Sukhi Ram ji, ab Rabbit naye raste par doudne ke liye taiyar hai!")
 
-# Instruction Box
-instruction = st.text_area("Rabbit ko kya naya sikhna ya badalna hai?", 
-                          placeholder="Example: Background light blue karo aur 'Python Lesson 1' ka button banao.")
+instruction = st.text_area("Rabbit ko kya badalna hai?", 
+                          placeholder="Example: Background light blue karo aur 'HCS Exam Prep' button banao.")
 
 if st.button("EXECUTE EVOLUTION"):
     if instruction and gemini_key and github_key:
-        with st.spinner("Rabbit apna naya roop (Code) likh raha hai..."):
+        with st.spinner("Rabbit naya code likh kar GitHub par bhej raha hai..."):
             try:
-                # Rabbit ko instruction: Pura code wapas likho naye feature ke saath
+                # Prompt to rewrite the entire script
                 prompt = f"""
-                You are Rabbit AI. Your file name is {file_path}.
-                Based on this instruction: '{instruction}', rewrite the ENTIRE Streamlit app code.
-                STRICT RULE: Ensure all existing imports, sidebar configs, and the 'evolve_rabbit' function are PRESERVED in the new code.
-                Return ONLY the raw Python code. Do not use markdown backticks like ```python.
+                You are Rabbit AI. Current file: {file_path} in {repo_name}.
+                Instruction: {instruction}.
+                STRICT RULE: Rewrite the ENTIRE Streamlit code. 
+                Keep all imports, sidebar logic, and the 'evolve_rabbit' function exactly as they are.
+                Return ONLY raw Python code. No markdown or backticks.
                 """
+                
+                # Using the smart model selected in sidebar
                 response = model.generate_content(prompt)
                 
                 if response and response.text:
                     clean_code = response.text.strip()
-                    # Markdown backticks cleaning
                     if clean_code.startswith("```"):
                         clean_code = clean_code.split("\n", 1)[1].rsplit("\n", 1)[0]
                     
-                    # Update GitHub (Self-Update)
                     status = evolve_rabbit(clean_code)
                     
                     if status in [200, 201]:
-                        st.success("Mubarak ho! Rabbit ne khud ko update kar liya hai. 2 minute baad refresh karein.")
+                        st.success("Mubarak ho! Code update ho gaya. 2 minute rukiye aur refresh karein.")
                         st.balloons()
                     else:
-                        st.error(f"GitHub Error Code: {status}. Token ya Repo permissions check karein.")
+                        st.error(f"GitHub Error {status}: Repo name ya Token check karein.")
                 else:
-                    st.error("AI code generate nahi kar paya. Dobara try karein.")
+                    st.error("AI code generate nahi kar paya.")
             except Exception as e:
                 st.error(f"Evolution Error: {e}")
     else:
