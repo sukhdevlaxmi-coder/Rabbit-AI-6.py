@@ -28,7 +28,7 @@ user_input = st.text_input("Rabbit ko command dein (Hindi/Python/C++):")
 if user_input and api_key:
     # --- PURANE CODE KI JAGAH YE DAALEIN ---
 if user_input and api_key:
-    try:
+    try:    
         with st.spinner("Rabbit dimaag chala raha hai..."):
             response = model.generate_content(user_input)
             if response.text:
