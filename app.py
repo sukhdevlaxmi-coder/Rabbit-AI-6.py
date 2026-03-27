@@ -43,11 +43,20 @@ instruction = st.text_area("Rabbit ko kya naya sikhna ya badalna hai?")
 
 if st.button("EXECUTE EVOLUTION"):
     if instruction and gemini_key and github_key:
+    try:
         with st.spinner("Rabbit apna naya roop likh raha hai..."):
-            # Rabbit naya code generate karega
-            prompt = f"Improve the existing Streamlit app code to include: {instruction}. Return ONLY the full updated Python code."
-            response = model.generate_content(prompt)
-            new_generated_code = response.text.replace("```python", "").replace("```", "")
+            # Yahan hum model ko dobara define kar rahe hain safety ke liye
+            rabbit_brain = genai.GenerativeModel('gemini-1.5-flash')
+            response = rabbit_brain.generate_content(instruction)
+            
+            if response and response.text:
+                new_generated_code = response.text.replace("```python", "").replace("```", "")
+                # Baki ka update logic yahan...
+                st.success("Rabbit ne naya code soch liya hai!")
+            else:
+                st.error("Google ne koi jawab nahi diya. Dobara try karein.")
+    except Exception as e:
+        st.error(f"Evolution Error: {e}")
             
             # GitHub par khud ko update karna
             status = update_github_code(new_generated_code)
