@@ -13,7 +13,7 @@ with st.sidebar:
     
     # SCREENSHOT (6.pdf) KE HISAB SE EK-EK AKSHAR SAHI:
     repo_owner = "sukhdevlaxmi-coder"
-    repo_name = "Rabbit-Al-6.py"  # Aapne repo ka naam hi '.py' ke saath rakha hai
+    repo_name = "Rabbit-AI-6.py"  # Aapne repo ka naam hi '.py' ke saath rakha hai
     file_path = "app.py"          # Asli file ka naam app.py hai
 
     if gem_key and git_key:
