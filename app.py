@@ -35,10 +35,22 @@ with st.sidebar:
     if gemini_key and github_key:
         try:
             genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            st.success("Guardian Brain Active ✅")
+            
+            # 404 ERROR FIX: Ye line saare available models ki list nikalegi
+            models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            
+            # Agar flash model hai to wo, nahi to pehla jo bhi mile use utha lo
+            if 'models/gemini-1.5-flash' in models:
+                active_model = 'models/gemini-1.5-flash'
+            elif 'models/gemini-pro' in models:
+                active_model = 'models/gemini-pro'
+            else:
+                active_model = models[0]
+            
+            model = genai.GenerativeModel(active_model)
+            st.success(f"Guardian Brain Active: {active_model} ✅")
         except Exception as e:
-            st.error(f"Alert: {e}")
+            st.error(f"Brain Sync Error: {e}")
 # --- LOCAL STORAGE FOR OFFLINE MEMORY ---
 def save_local_memory(data):
     with open("rabbit_memory.json", "w") as f:
