@@ -20,7 +20,7 @@ st.markdown("""
     }
     .stTab { background-color: rgba(255,255,255,0.05); border-radius: 10px; }
     </style>
-    """, unsafe_allow_stdio=True)
+    """, unsafe_allow_html=True)
 
 with st.sidebar:
     st.header("🐰 RABBIT MASTER CORE")
