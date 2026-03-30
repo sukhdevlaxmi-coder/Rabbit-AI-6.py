@@ -3,27 +3,46 @@ import google.generativeai as genai
 import base64
 import requests
 import json
+import os
+import time
+import math
 
-# --- BRAIN VERSION AUTO-FIX ---
+# --- BRAIN DATA PERSISTENCE ---
+MEMORY_FILE = "rabbit_brain_data.json"
+
+def load_brain():
+    if os.path.exists(MEMORY_FILE):
+        with open(MEMORY_FILE, "r") as f:
+            try: return json.load(f)
+            except: return {"balance": 5000.75, "hcs_score": 0, "logs": []}
+    return {"balance": 5000.75, "hcs_score": 0, "logs": ["System Booted"]}
+
+def save_brain(data):
+    with open(MEMORY_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+if 'brain' not in st.session_state:
+    st.session_state.brain = load_brain()
+
+# --- MODEL SELECTION LOGIC ---
 def get_working_model():
-    # Ye function khud dhoondega ki kaunsa model available hai
     try:
         available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        if 'models/gemini-1.5-flash' in available_models:
-            return 'gemini-1.5-flash'
-        elif 'models/gemini-pro' in available_models:
-            return 'gemini-pro'
+        if 'models/gemini-1.5-flash' in available_models: return 'gemini-1.5-flash'
         return available_models[0].replace('models/', '')
-    except:
-        return 'gemini-1.5-flash-latest' # Default safe option
+    except: return 'gemini-1.5-flash-latest'
 
-# --- UI & CONFIG ---
-st.set_page_config(page_title="RABBIT 12.0 - FIX", layout="wide")
+# --- UI CONFIG ---
+st.set_page_config(page_title="RABBIT 12.0 - SUPREME", layout="wide")
 
 with st.sidebar:
     st.header("🐰 RABBIT MASTER CONTROL")
     gem_key = st.text_input("Gemini API Key:", type="password")
     git_key = st.text_input("GitHub Token:", type="password")
+    
+    st.divider()
+    st.subheader("⚙️ Local Brain (Ollama)")
+    ollama_active = st.checkbox("Use Local Ollama (Offline Mode)")
     
     if gem_key and git_key:
         try:
@@ -34,55 +53,39 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Sync Error: {e}")
 
-# --- EVOLUTION LOGIC ---
-st.title("🛡️ SUPREME MASTER - RABBIT 12.0")
-st.info("Sukhi Ram ji, ab 'Brain Overload' nahi hoga. Naya command dein.")
+# --- GITHUB PUSH FUNCTION ---
+def push_to_github(new_code, commit_msg):
+    repo_owner = "sukhdevlaxmi-coder"
+    repo_name = "Rabbit-Al-6.py"
+    file_path = "app.py"
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+    headers = {"Authorization": f"token {git_key}", "Accept": "application/vnd.github.v3+json"}
+    
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        sha = res.json()['sha']
+        encoded = base64.b64encode(new_code.encode('utf-8')).decode('utf-8')
+        put_res = requests.put(url, headers=headers, json={"message": commit_msg, "content": encoded, "sha": sha})
+        return put_res.status_code
+    return 404
 
-instruction = st.text_area("Master Security Prompt (Face/Voice Scan):", 
-                          placeholder="Yahan apna biometric scan wala prompt likhein...")
-
-if st.button("🔥 INITIATE EVOLUTION"):
-    if instruction and gem_key and git_key:
-        with st.spinner("Rabbit is repairing its neural pathways..."):
-            try:
-                # 404 Fix: Yahan model object use hoga
-                prompt = f"You are Rabbit AI 12.0. Task: {instruction}. Rewrite app.py to include face/voice security. Return ONLY raw Python code."
-                response = model.generate_content(prompt)
-                
-                if response.text:
-                    clean_code = response.text.strip().replace("```python", "").replace("```", "")
-                    # GitHub Push Logic (Aapki purani function jaisi hi rahegi)
-                    st.balloons()
-                    st.success("Mubarak ho! 404 Error khatam. Refresh karein.")
-            except Exception as e:
-                st.error(f"Error: {e}")
 # --- MAIN INTERFACE ---
 st.title("🛡️ SUPREME MASTER - RABBIT 12.0")
-st.write("Status: Self-Evolving Mode Active 🧠")
+st.write(f"Status: {'Ollama Local' if ollama_active else 'Cloud Neural'} Active 🧠")
 
 tabs = st.tabs(["🧬 Evolve Brain", "🎬 Multimedia", "🎮 Gaming", "📚 HCS Master", "🔐 Guardian"])
 
-# TAB 0: EVOLUTION (The Self-Involving Part)
+# TAB 0: EVOLUTION
 with tabs[0]:
     st.header("Brain Expansion Interface")
-    st.info("Sukhi Ram ji, Rabbit ko jo bhi naya sikhana hai yahan likhein.")
-    evolution_input = st.text_area("Next Evolution Command:", placeholder="E.g. Rabbit, ek naya tab banao family tracking ke liye aur interface gold karo.")
+    evolution_input = st.text_area("Next Evolution Command:", placeholder="E.g. Rabbit, family tracking tab banao.")
     
     if st.button("🚀 INITIATE EVOLUTION"):
-        if evolution_input and gemini_key and github_token:
-            with st.spinner("Rabbit is thinking and rewriting its own code..."):
+        if evolution_input and gem_key and git_key:
+            with st.spinner("Rabbit is evolving..."):
                 try:
-                    genai.configure(api_key=gemini_key)
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-                    prompt = f"""
-                    You are Rabbit AI 12.0. Your current code is a Streamlit app. 
-                    Task: {evolution_input}.
-                    Rules: 
-                    1. Return the FULL updated app.py code. 
-                    2. Maintain the 'push_to_github' function and 'brain' memory logic.
-                    3. Ensure it's self-evolving.
-                    Return ONLY raw code.
-                    """
+                    # Logic: If Ollama is checked, it could use local API (Future setup)
+                    prompt = f"You are Rabbit AI 12.0. Task: {evolution_input}. Return ONLY raw Python code."
                     response = model.generate_content(prompt)
                     if response.text:
                         clean_code = response.text.strip().replace("```python", "").replace("```", "")
@@ -91,40 +94,32 @@ with tabs[0]:
                             st.balloons()
                             st.session_state.brain["logs"].append(f"Evolved: {evolution_input[:20]}")
                             save_brain(st.session_state.brain)
-                            st.success("Evolution Complete! 1 min baad refresh karein.")
-                        else: st.error(f"GitHub Error: {status}")
-                except Exception as e: st.error(f"Evolution Failed: {e}")
+                            st.success("Evolution Complete! Refresh karein.")
+                except Exception as e: st.error(f"Failed: {e}")
 
 # TAB 1: MULTIMEDIA
 with tabs[1]:
-    st.header("360° Media Center")
-    if st.button("Scan Media Library"):
-        st.write("Searching external storage...")
-        time.sleep(1)
-        st.success("Connected to Drive/Local Storage.")
+    st.header("360° Media & Video Editor")
+    st.write("Ollama analyzing media trends...")
+    if st.button("Scan Library"):
+        st.success("Connected to External Storage.")
 
-# TAB 2: GAMING
-with tabs[2]:
-    st.header("Physics Simulator")
-    angle = st.slider("Launch Angle", 0, 90, 45)
-    if st.button("Launch Test"):
-        st.write(f"Calculating Trajectory for {angle} degrees...")
-
-# TAB 3: HCS MASTER
+# TAB 3: HCS MASTER (Error Fixed: Using .get() for safety)
 with tabs[3]:
     st.header("HCS Prep Hub")
-    st.write(f"Knowledge Level: {st.session_state.brain['hcs_score']}")
+    score = st.session_state.brain.get('hcs_score', 0)
+    st.write(f"Knowledge Level: {score}")
     if st.button("Generate Today's Set"):
-        st.session_state.brain["hcs_score"] += 1
+        st.session_state.brain["hcs_score"] = score + 1
         save_brain(st.session_state.brain)
         st.rerun()
 
 # TAB 4: GUARDIAN
 with tabs[4]:
     st.header("Bank & Security")
-    st.metric("Balance", f"${st.session_state.brain['balance']}")
+    bal = st.session_state.brain.get('balance', 5000.75)
+    st.metric("Balance", f"${bal}")
     if st.button("Secure Deposit $100"):
-        st.session_state.brain["balance"] += 100
-        st.session_state.brain["logs"].append("Deposited $100")
+        st.session_state.brain["balance"] = bal + 100
         save_brain(st.session_state.brain)
         st.rerun()
