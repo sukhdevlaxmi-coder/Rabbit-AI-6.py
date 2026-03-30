@@ -1,12 +1,3 @@
-streamlit
-google-generativeai
-requests
-streamlit-webrtc
-google-cloud-storage
-firebase-admin
-opencv-python
-yt-dlp
-ursina
 opencv-python-headless
 Pillow
-numpy
+google-generativeai
