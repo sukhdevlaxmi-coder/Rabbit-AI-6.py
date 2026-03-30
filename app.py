@@ -70,7 +70,7 @@ if st.button("🚀 INITIATE EVOLUTION"):
                         new_code = response.text.strip().replace("```python", "").replace("```", "")
                         
                         # GitHub Update Logic
-                        repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+                        repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py"
                         url = f"https://api.github.com/repos/{repo}/contents/app.py"
                         headers = {"Authorization": f"token {git_key}"}
                         
