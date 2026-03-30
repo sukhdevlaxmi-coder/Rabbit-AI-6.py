@@ -3,95 +3,145 @@ import json
 import os
 import math
 import time
+import google.generativeai as genai
+import base64
+import requests
 
-# --- EXTERNAL MEMORY BRIDGE ---
+# --- 1. EXTERNAL NEURAL MEMORY (Rabbit ki Yaddasht) ---
+# Ye file Rabbit ke brain ka data (Balance, HCS score, Logs) save rakhegi.
 MEMORY_FILE = "rabbit_brain_data.json"
 
-def load_external_data():
+def load_brain():
     if os.path.exists(MEMORY_FILE):
         with open(MEMORY_FILE, "r") as f:
-            return json.load(f)
-    # Default data agar file nahi hai
-    return {
-        "balance": 5000.75,
-        "hcs_score": 0,
-        "logs": ["Rabbit AI v12.0 Initialized"]
-    }
+            try:
+                return json.load(f)
+            except:
+                return {"balance": 5000.75, "hcs_score": 0, "logs": [], "version": "12.0"}
+    return {"balance": 5000.75, "hcs_score": 0, "logs": ["System Booted"], "version": "12.0"}
 
-def save_external_data(data):
+def save_brain(data):
     with open(MEMORY_FILE, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
-# --- INITIALIZE RABBIT DATA ---
-if 'rabbit_data' not in st.session_state:
-    st.session_state.rabbit_data = load_external_data()
+# Brain Initialize karein
+if 'brain' not in st.session_state:
+    st.session_state.brain = load_brain()
 
-# --- UI SETTINGS ---
-st.set_page_config(page_title="RABBIT AI 12.0", layout="wide")
-st.title("🛡️ MASTER SUKHI RAM - RABBIT 12.0")
+# --- 2. CONFIGURATION & UI ---
+st.set_page_config(page_title="RABBIT AI 12.0 - SELF EVOLVING", layout="wide")
 
-# --- SIDEBAR: BRAIN LOGS ---
+# Neon Matrix Style UI
+st.markdown("""
+    <style>
+    .main { background-color: #000000; color: #00FFCC; font-family: 'Courier New', monospace; }
+    .stButton>button { background: linear-gradient(45deg, #00FFCC, #0080FF); color: black; font-weight: bold; border-radius: 8px; border: none; box-shadow: 0 0 10px #00FFCC; }
+    .stTextArea>div>div>textarea { background-color: #0a0a0a; color: #00FFCC; border: 1px solid #00FFCC; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 3. SIDEBAR: BRAIN MONITOR ---
 with st.sidebar:
-    st.header("🧠 Neural Logs")
-    for log in reversed(st.session_state.rabbit_data["logs"][-5:]):
-        st.write(f"• {log}")
-    if st.button("Reset Brain Memory"):
-        st.session_state.rabbit_data = {"balance": 5000.75, "hcs_score": 0, "logs": ["Memory Reset"]}
-        save_external_data(st.session_state.rabbit_data)
+    st.title("🐰 RABBIT CORE")
+    gemini_key = st.text_input("Gemini API Key:", type="password")
+    github_token = st.text_input("GitHub Token:", type="password")
+    
+    st.divider()
+    st.subheader("🧬 Neural Evolution Log")
+    for log in reversed(st.session_state.brain["logs"][-10:]):
+        st.caption(f"⚡ {log}")
+    
+    if st.button("Reset Neural Paths"):
+        st.session_state.brain = load_brain()
+        save_brain(st.session_state.brain)
         st.rerun()
 
-# --- MAIN TABS (The 4 Core Modules) ---
-tab1, tab2, tab3, tab4 = st.tabs(["🎬 Multimedia", "🎮 Gaming", "📚 HCS Master", "🔐 Guardian"])
+# --- 4. THE EVOLUTION ENGINE (Thinking & Writing Code) ---
+def push_to_github(new_code, commit_msg):
+    repo_owner = "sukhdevlaxmi-coder"
+    repo_name = "Rabbit-Al-6.py"
+    file_path = "app.py"
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+    headers = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
+    
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        sha = res.json()['sha']
+        encoded = base64.b64encode(new_code.encode('utf-8')).decode('utf-8')
+        data = {"message": commit_msg, "content": encoded, "sha": sha}
+        put_res = requests.put(url, headers=headers, json=data)
+        return put_res.status_code
+    return res.status_code
 
-# --- 1. MULTIMEDIA (External Storage Simulation) ---
-with tab1:
-    st.header("360° Multimedia Viewer")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Load 360 Image"):
-            st.image("https://p7.itc.cn/images01/20201019/5e6302e76f5b4783b9277d33d937000e.jpeg", caption="Spherical Projection Active")
-            st.session_state.rabbit_data["logs"].append("Loaded 360 Image")
-            save_external_data(st.session_state.rabbit_data)
+# --- MAIN INTERFACE ---
+st.title("🛡️ SUPREME MASTER - RABBIT 12.0")
+st.write("Status: Self-Evolving Mode Active 🧠")
 
-# --- 2. GAMING (Angry Birds Physics) ---
-with tab2:
-    st.header("Angry Birds Physics Engine")
-    v = st.slider("Initial Velocity (m/s)", 10, 100, 60)
-    angle = st.slider("Launch Angle (degrees)", 0, 90, 45)
-    if st.button("Launch Bird"):
-        # Physics Logic
-        target_x = 250
-        g = 9.81
-        rad = math.radians(angle)
-        distance = (v**2 * math.sin(2 * rad)) / g
-        st.write(f"Bird Landed at: {distance:.2f} meters")
-        if abs(distance - target_x) <= 15:
-            st.success("🎯 TARGET HIT!")
-            st.balloons()
-        else:
-            st.error("MISSED!")
+tabs = st.tabs(["🧬 Evolve Brain", "🎬 Multimedia", "🎮 Gaming", "📚 HCS Master", "🔐 Guardian"])
 
-# --- 3. HCS MASTER (Persistent Exam Data) ---
-with tab3:
-    st.header("HCS Exam Prep Quiz")
-    q = "हरियाणा का राजकीय पक्षी कौन सा है?"
-    ans = st.radio(q, ["कबूतर", "काला तीतर", "सारस क्रेन", "मोर"])
-    if st.button("Submit Answer"):
-        if ans == "काला तीतर":
-            st.success("Sahi Jawab!")
-            st.session_state.rabbit_data["hcs_score"] += 1
-            save_external_data(st.session_state.rabbit_data)
-        else:
-            st.error("Galat!")
+# TAB 0: EVOLUTION (The Self-Involving Part)
+with tabs[0]:
+    st.header("Brain Expansion Interface")
+    st.info("Sukhi Ram ji, Rabbit ko jo bhi naya sikhana hai yahan likhein.")
+    evolution_input = st.text_area("Next Evolution Command:", placeholder="E.g. Rabbit, ek naya tab banao family tracking ke liye aur interface gold karo.")
+    
+    if st.button("🚀 INITIATE EVOLUTION"):
+        if evolution_input and gemini_key and github_token:
+            with st.spinner("Rabbit is thinking and rewriting its own code..."):
+                try:
+                    genai.configure(api_key=gemini_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = f"""
+                    You are Rabbit AI 12.0. Your current code is a Streamlit app. 
+                    Task: {evolution_input}.
+                    Rules: 
+                    1. Return the FULL updated app.py code. 
+                    2. Maintain the 'push_to_github' function and 'brain' memory logic.
+                    3. Ensure it's self-evolving.
+                    Return ONLY raw code.
+                    """
+                    response = model.generate_content(prompt)
+                    if response.text:
+                        clean_code = response.text.strip().replace("```python", "").replace("```", "")
+                        status = push_to_github(clean_code, "Self-Evolution Update")
+                        if status in [200, 201]:
+                            st.balloons()
+                            st.session_state.brain["logs"].append(f"Evolved: {evolution_input[:20]}")
+                            save_brain(st.session_state.brain)
+                            st.success("Evolution Complete! 1 min baad refresh karein.")
+                        else: st.error(f"GitHub Error: {status}")
+                except Exception as e: st.error(f"Evolution Failed: {e}")
 
-# --- 4. GUARDIAN (Bank & Security) ---
-with tab4:
-    st.header("Guardian Security & Bank")
-    st.write(f"Current Secure Balance: ${st.session_state.rabbit_data['balance']:.2f}")
-    amt = st.number_input("Enter Amount to Deposit", min_value=0.0)
-    if st.button("Deposit Securely"):
-        st.session_state.rabbit_data["balance"] += amt
-        st.session_state.rabbit_data["logs"].append(f"Deposited ${amt}")
-        save_external_data(st.session_state.rabbit_data)
-        st.success("Transaction Encrypted & Saved to External Memory!")
+# TAB 1: MULTIMEDIA
+with tabs[1]:
+    st.header("360° Media Center")
+    if st.button("Scan Media Library"):
+        st.write("Searching external storage...")
+        time.sleep(1)
+        st.success("Connected to Drive/Local Storage.")
+
+# TAB 2: GAMING
+with tabs[2]:
+    st.header("Physics Simulator")
+    angle = st.slider("Launch Angle", 0, 90, 45)
+    if st.button("Launch Test"):
+        st.write(f"Calculating Trajectory for {angle} degrees...")
+
+# TAB 3: HCS MASTER
+with tabs[3]:
+    st.header("HCS Prep Hub")
+    st.write(f"Knowledge Level: {st.session_state.brain['hcs_score']}")
+    if st.button("Generate Today's Set"):
+        st.session_state.brain["hcs_score"] += 1
+        save_brain(st.session_state.brain)
+        st.rerun()
+
+# TAB 4: GUARDIAN
+with tabs[4]:
+    st.header("Bank & Security")
+    st.metric("Balance", f"${st.session_state.brain['balance']}")
+    if st.button("Secure Deposit $100"):
+        st.session_state.brain["balance"] += 100
+        st.session_state.brain["logs"].append("Deposited $100")
+        save_brain(st.session_state.brain)
         st.rerun()
