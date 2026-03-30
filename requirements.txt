@@ -7,3 +7,6 @@ firebase-admin
 opencv-python
 yt-dlp
 ursina
+opencv-python-headless
+Pillow
+numpy
