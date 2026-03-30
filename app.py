@@ -85,7 +85,7 @@ with t2:
                     if response.text:
                         new_code = response.text.strip().replace("```python", "").replace("```", "")
                         # GitHub Sync
-                        url = f"https://api.github.com/repos/sukhdevlaxmi-coder/Rabbit-Al-6.py/contents/app.py"
+                        url = f"https://api.github.com/repos/sukhdevlaxmi-coder/Rabbit-AI-6.py/contents/app.py"
                         headers = {"Authorization": f"token {git_key}"}
                         r = requests.get(url, headers=headers)
                         if r.status_code == 200:
