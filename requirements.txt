@@ -4,3 +4,6 @@ requests
 streamlit-webrtc
 google-cloud-storage
 firebase-admin
+opencv-python
+yt-dlp
+ursina
