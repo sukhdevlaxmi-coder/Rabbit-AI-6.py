@@ -5,7 +5,7 @@ import requests
 import json
 import os
 
-# --- 1. BRAIN MEMORY GATE (Jo Rabbit kabhi nahi bhulega) ---
+# --- 1. BRAIN MEMORY GATE ---
 MEMORY_FILE = "rabbit_brain_data.json"
 
 def load_brain():
@@ -22,12 +22,21 @@ def save_brain(data):
 if 'brain' not in st.session_state:
     st.session_state.brain = load_brain()
 
-# --- 2. STABLE MODEL PICKER (NotFound Error Fix) ---
+# --- 2. SMART MODEL PICKER (NotFound Error Fix) ---
 def get_stable_model(api_key):
     try:
         genai.configure(api_key=api_key)
-        # Seedha stable version call karenge
-        return genai.GenerativeModel('gemini-1.5-flash')
+        # 404 Fix: Sabse pehle 'gemini-1.5-flash-latest' try karein
+        # Phir 'gemini-1.5-flash' aur 'gemini-pro'
+        for model_name in ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro']:
+            try:
+                model = genai.GenerativeModel(model_name)
+                # Ek chota test message
+                model.generate_content("test") 
+                return model
+            except:
+                continue
+        return None
     except:
         return None
 
@@ -46,7 +55,7 @@ with st.sidebar:
 
 # --- 4. SELF-INVOLVING EVOLUTION ENGINE ---
 st.subheader("🧬 Evolution Command (Brain Expansion)")
-cmd = st.text_area("Order Rabbit (Hindi/English):", placeholder="Rabbit, 360 viewer aur family tracker active karo...")
+cmd = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, 360 viewer aur security active karo...")
 
 if st.button("🚀 INITIATE EVOLUTION"):
     if gem_key and git_key and cmd:
@@ -54,7 +63,6 @@ if st.button("🚀 INITIATE EVOLUTION"):
             model = get_stable_model(gem_key)
             if model:
                 try:
-                    # Self-Involving Prompt: Rabbit ko batana ki wo khud ko badle
                     prompt = f"You are a Self-Evolving AI. Task: {cmd}. Rewrite the entire app.py code to include this. Return ONLY raw Python code."
                     response = model.generate_content(prompt)
                     
@@ -62,7 +70,7 @@ if st.button("🚀 INITIATE EVOLUTION"):
                         new_code = response.text.strip().replace("```python", "").replace("```", "")
                         
                         # GitHub Update Logic
-                        repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py"
+                        repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
                         url = f"https://api.github.com/repos/{repo}/contents/app.py"
                         headers = {"Authorization": f"token {git_key}"}
                         
@@ -72,7 +80,6 @@ if st.button("🚀 INITIATE EVOLUTION"):
                             encoded = base64.b64encode(new_code.encode()).decode()
                             requests.put(url, headers=headers, json={"message": "Evolution", "content": encoded, "sha": sha})
                             
-                            # Memory Update
                             st.session_state.brain["history"].append(f"Evolved: {cmd[:20]}")
                             save_brain(st.session_state.brain)
                             
@@ -81,14 +88,14 @@ if st.button("🚀 INITIATE EVOLUTION"):
                 except Exception as e:
                     st.error(f"Logic Error: {e}")
             else:
-                st.error("Model Not Found. Please check API Key.")
+                st.error("No compatible Gemini model found. Check API Key or Internet.")
 
 # --- 5. TABS FOR OUTPUT ---
 t1, t2, t3 = st.tabs(["📊 Family Data", "📚 HCS Master", "🎬 Multimedia"])
 
 with t1:
     st.metric("Total Family Funds", f"${st.session_state.brain.get('balance', 5000)}")
-    st.write("Ollama is ready for local file analysis.")
+    st.write("Local Brain (Ollama) is ready.")
 
 with t2:
     st.write(f"HCS Knowledge Score: {st.session_state.brain.get('hcs_score', 0)}")
