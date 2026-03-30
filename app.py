@@ -5,7 +5,7 @@ import requests
 import json
 import os
 
-# --- 1. NEURAL MEMORY (Jo Rabbit Kabhi Nahi Bhulega) ---
+# --- 1. BRAIN MEMORY GATE (Jo Rabbit kabhi nahi bhulega) ---
 MEMORY_FILE = "rabbit_brain_data.json"
 
 def load_brain():
@@ -19,69 +19,83 @@ def save_brain(data):
     with open(MEMORY_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Memory ko session mein load karein
 if 'brain' not in st.session_state:
     st.session_state.brain = load_brain()
 
-# --- 2. SELF-EVOLVING ENGINE ---
-st.set_page_config(page_title="RABBIT - SELF INVOLVING", layout="wide")
+# --- 2. STABLE MODEL PICKER (NotFound Error Fix) ---
+def get_stable_model(api_key):
+    try:
+        genai.configure(api_key=api_key)
+        # Seedha stable version call karenge
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        return None
+
+# --- 3. UI LAYOUT ---
+st.set_page_config(page_title="RABBIT 12.0 - SUPREME", layout="wide")
 st.title("🛡️ NEURAL BRAIN - RABBIT 12.0")
 
 with st.sidebar:
     st.header("⚙️ MASTER SETTINGS")
     gem_key = st.text_input("Gemini API Key:", type="password")
     git_key = st.text_input("GitHub Token:", type="password")
-    
     st.divider()
     st.subheader("📚 Memory Logs")
     for log in reversed(st.session_state.brain.get("history", [])[-5:]):
         st.caption(f"🧠 {log}")
 
-# --- 3. THE "SELF-INVOLVING" LOGIC ---
+# --- 4. SELF-INVOLVING EVOLUTION ENGINE ---
 st.subheader("🧬 Evolution Command (Brain Expansion)")
-cmd = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, 360 viewer jodo aur family data save karo...")
+cmd = st.text_area("Order Rabbit (Hindi/English):", placeholder="Rabbit, 360 viewer aur family tracker active karo...")
 
 if st.button("🚀 INITIATE EVOLUTION"):
     if gem_key and git_key and cmd:
         with st.status("Rabbit is Thinking & Rewriting...", expanded=True) as status:
-            genai.configure(api_key=gem_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            
-            # Ye prompt Rabbit ko batata hai ki usey KHUD ko badalna hai
-            prompt = f"""
-            You are a Self-Evolving AI. Your code is in app.py. 
-            User Task: {cmd}. 
-            Instruction: Rewrite the entire app.py to include this feature. 
-            Keep the memory loading/saving logic and GitHub sync intact. 
-            Return ONLY raw Python code.
-            """
-            
-            response = model.generate_content(prompt)
-            if response.text:
-                new_code = response.text.strip().replace("```python", "").replace("```", "")
-                
-                # GitHub Push
-                repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
-                url = f"https://api.github.com/repos/{repo}/contents/app.py"
-                headers = {"Authorization": f"token {git_key}"}
-                
-                r = requests.get(url, headers=headers)
-                if r.status_code == 200:
-                    sha = r.json()['sha']
-                    encoded = base64.b64encode(new_code.encode()).decode()
-                    requests.put(url, headers=headers, json={"message": "Self-Evolution", "content": encoded, "sha": sha})
+            model = get_stable_model(gem_key)
+            if model:
+                try:
+                    # Self-Involving Prompt: Rabbit ko batana ki wo khud ko badle
+                    prompt = f"You are a Self-Evolving AI. Task: {cmd}. Rewrite the entire app.py code to include this. Return ONLY raw Python code."
+                    response = model.generate_content(prompt)
                     
-                    # Yaad rakhne ke liye log save karein
-                    st.session_state.brain["history"].append(f"Evolved: {cmd[:20]}")
-                    save_brain(st.session_state.brain)
-                    
-                    st.balloons()
-                    status.update(label="Evolution Successful! Refresh in 1 min.", state="complete")
+                    if response.text:
+                        new_code = response.text.strip().replace("```python", "").replace("```", "")
+                        
+                        # GitHub Update Logic
+                        repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+                        url = f"https://api.github.com/repos/{repo}/contents/app.py"
+                        headers = {"Authorization": f"token {git_key}"}
+                        
+                        r = requests.get(url, headers=headers)
+                        if r.status_code == 200:
+                            sha = r.json()['sha']
+                            encoded = base64.b64encode(new_code.encode()).decode()
+                            requests.put(url, headers=headers, json={"message": "Evolution", "content": encoded, "sha": sha})
+                            
+                            # Memory Update
+                            st.session_state.brain["history"].append(f"Evolved: {cmd[:20]}")
+                            save_brain(st.session_state.brain)
+                            
+                            st.balloons()
+                            status.update(label="Evolution Successful! Refresh in 1 min.", state="complete")
+                except Exception as e:
+                    st.error(f"Logic Error: {e}")
+            else:
+                st.error("Model Not Found. Please check API Key.")
 
-# --- 4. DATA DISPLAY (Jo hamesha dikhega) ---
-st.divider()
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Family Funds (Saved)", f"${st.session_state.brain.get('balance', 5000)}")
-with col2:
-    st.write(f"HCS Mastery: {st.session_state.brain.get('hcs_score', 0)}")
+# --- 5. TABS FOR OUTPUT ---
+t1, t2, t3 = st.tabs(["📊 Family Data", "📚 HCS Master", "🎬 Multimedia"])
+
+with t1:
+    st.metric("Total Family Funds", f"${st.session_state.brain.get('balance', 5000)}")
+    st.write("Ollama is ready for local file analysis.")
+
+with t2:
+    st.write(f"HCS Knowledge Score: {st.session_state.brain.get('hcs_score', 0)}")
+    if st.button("Add Progress"):
+        st.session_state.brain['hcs_score'] += 1
+        save_brain(st.session_state.brain)
+        st.rerun()
+
+with t3:
+    st.info("360 Photo/Video Editor engine is standing by...")
