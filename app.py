@@ -1,65 +1,110 @@
 import streamlit as st
+import google.generativeai as genai
+import base64
+import requests
+import json
+import os
 import cv2
 import numpy as np
-from PIL import Image, ImageOps, ImageFilter
-import io
+from PIL import Image
+import time
 
-# --- 1. ADVANCED 3D MEDIA PROCESSOR ---
-def apply_3d_look(image):
-    # Image ko 3D "Anaglyph" (Red-Cyan) look dena
-    img_np = np.array(image.convert('RGB'))
-    height, width, _ = img_np.shape
-    
-    # Red aur Cyan layers ko thoda shift karna depth ke liye
-    red_layer = img_np[:, :, 0]
-    cyan_layer = img_np[:, :, 1:]
-    
-    # Shift channels
-    shift = 10
-    new_img = np.zeros_like(img_np)
-    new_img[:, shift:, 0] = red_layer[:, :-shift]
-    new_img[:, :-shift, 1:] = cyan_layer[:, shift:]
+# --- 1. NEURAL MEMORY (Self-Involving Gate) ---
+MEMORY_FILE = "rabbit_brain_data.json"
+
+def load_brain():
+    if os.path.exists(MEMORY_FILE):
+        with open(MEMORY_FILE, "r") as f:
+            try: return json.load(f)
+            except: return {"hcs_score": 0, "balance": 5000, "history": []}
+    return {"hcs_score": 0, "balance": 5000, "history": ["Core Initialized"]}
+
+def save_brain(data):
+    with open(MEMORY_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+if 'brain' not in st.session_state:
+    st.session_state.brain = load_brain()
+
+# --- 2. UI & STYLE ---
+st.set_page_config(page_title="RABBIT 12.0 - TECH CORE", layout="wide")
+st.markdown("<style>.main { background-color: #050505; color: #00FFCC; }</style>", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.header("🐰 MASTER CONTROL")
+    gem_key = st.text_input("Gemini API Key:", type="password")
+    git_key = st.text_input("GitHub Token:", type="password")
+    st.divider()
+    st.write(f"Knowledge: {st.session_state.brain.get('hcs_score', 0)}")
+    st.write(f"Funds: ${st.session_state.brain.get('balance', 5000)}")
+
+# --- 3. TECHNICAL 3D & 360 ENGINE ---
+def process_3d_effect(image):
+    # Technical Red-Cyan Anaglyph Depth Logic
+    img = np.array(image.convert('RGB'))
+    new_img = np.zeros_like(img)
+    shift = 15
+    new_img[:, shift:, 0] = img[:, :-shift, 0] # Red Channel Shift
+    new_img[:, :-shift, 1:] = img[:, shift:, 1:] # Cyan Channel Shift
     return Image.fromarray(new_img)
 
-# --- 2. 360° SPHERICAL SIMULATOR ---
-def simulate_360_view(image):
-    # Image ko panorama format mein dikhana
-    st.info("🔄 360° Spherical Engine: Activating Panoramic View...")
-    st.image(image, use_container_width=True, caption="Master 360° View")
-    st.success("Projection Mapping Complete!")
+st.title("🛡️ RABBIT 12.0 - SUPREME TECH INTERFACE")
 
-# --- 3. VIDEO EDITOR MODULE (Technical Detail) ---
-def technical_video_edit(uploaded_video):
-    # Video frames ko process karne ka technical code
-    st.subheader("🎥 AI Video Editor Core")
-    st.write("Ollama is analyzing frames for 3D depth extraction...")
-    # Simulation for editing
-    bar = st.progress(0)
-    for i in range(100):
-        time.sleep(0.02)
-        bar.progress(i + 1)
-    st.success("Video Edited with AI Enhancements!")
+tabs = st.tabs(["🎥 Multimedia 3D", "🧬 Evolution", "🔐 Guardian"])
 
-# --- 4. INTEGRATING INTO THE TABS ---
-# (Ye hissa aapke Multimedia Tab ke andar jayega)
-st.divider()
-st.subheader("🚀 Advanced Technical Suite")
-choice = st.selectbox("Action chunein:", ["Generate 3D Photo", "360° Panorama View", "AI Video Edit"])
+with tabs[0]:
+    st.header("Technical 360° & 3D Editor")
+    up_file = st.file_uploader("Upload Photo/Video for 3D processing", type=['jpg','png','mp4'])
+    
+    if up_file:
+        if up_file.type.startswith('image'):
+            img = Image.open(up_file)
+            st.image(img, caption="Original", use_container_width=True)
+            
+            if st.button("🚀 Generate 3D Technical Render"):
+                with st.spinner("Processing 3D Depth Map..."):
+                    res = process_3d_effect(img)
+                    st.image(res, caption="3D Rendered Output", use_container_width=True)
+                    st.success("3D Processing Complete!")
+        else:
+            st.video(up_file)
+            st.info("Video AI Analysis Active: Frame-by-frame depth extraction standing by.")
 
-if uploaded_file:
-    input_img = Image.open(uploaded_file)
-    if choice == "Generate 3D Photo":
-        result = apply_3d_look(input_img)
-        st.image(result, caption="3D Rendered Output")
-        
-    elif choice == "360° Panorama View":
-        simulate_360_view(input_img)
-        
-    elif choice == "AI Video Edit":
-        technical_video_edit(None)
+with tabs[1]:
+    st.subheader("Neural Expansion (Self-Evolution)")
+    cmd = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, Madhav ke liye 3D game tab banao...")
+    
+    if st.button("🔥 EXECUTE EVOLUTION"):
+        if gem_key and git_key and cmd:
+            with st.status("Rabbit is Rewriting Neural Pathways...") as s:
+                genai.configure(api_key=gem_key)
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                prompt = f"Rewrite app.py to: {cmd}. Focus on high-end 3D graphics. Return ONLY raw code."
+                response = model.generate_content(prompt)
+                
+                if response.text:
+                    new_code = response.text.strip().replace("```python", "").replace("```", "")
+                    # GitHub Push Logic
+                    repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+                    url = f"https://api.github.com/repos/{repo}/contents/app.py"
+                    headers = {"Authorization": f"token {git_key}"}
+                    r = requests.get(url, headers=headers)
+                    if r.status_code == 200:
+                        sha = r.json()['sha']
+                        requests.put(url, headers=headers, json={
+                            "message": "3D Tech Update", 
+                            "content": base64.b64encode(new_code.encode()).decode(),
+                            "sha": sha
+                        })
+                        st.session_state.brain["history"].append(f"Evolved 3D: {cmd[:15]}")
+                        save_brain(st.session_state.brain)
+                        st.balloons()
+                        s.update(label="Evolution Complete! Refresh karein.", state="complete")
 
-# --- 5. SELF-EVOLUTION GATE (Final Logic) ---
-# Ye Rabbit ko "Bhulne" nahi dega
-if st.button("💾 Save to External Brain"):
-    save_brain(st.session_state.brain)
-    st.success("Memory Locked into rabbit_brain_data.json!")
+with tabs[2]:
+    st.header("Security & Funds")
+    st.metric("Family Balance", f"${st.session_state.brain['balance']}")
+    if st.button("Add Progress"):
+        st.session_state.brain['hcs_score'] += 1
+        save_brain(st.session_state.brain)
+        st.rerun()
