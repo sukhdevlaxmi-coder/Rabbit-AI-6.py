@@ -66,7 +66,7 @@ with tabs[0]:
                     if response.text:
                         new_code = response.text.strip().replace("```python", "").replace("```", "")
                         # GitHub Push
-                        repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+                        repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py"
                         url = f"https://api.github.com/repos/{repo}/contents/app.py"
                         headers = {"Authorization": f"token {git_key}"}
                         r = requests.get(url, headers=headers)
