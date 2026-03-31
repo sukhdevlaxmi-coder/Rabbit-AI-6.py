@@ -4,20 +4,19 @@ import base64
 import requests
 import json
 import os
-import time
 import cv2
 import numpy as np
 from PIL import Image
 
-# --- 1. NEURAL MEMORY GATE (Jo Rabbit kabhi nahi bhulega) ---
+# --- 1. NEURAL MEMORY (Laptop Storage Logic) ---
 MEMORY_FILE = "rabbit_brain_data.json"
 
 def load_brain():
     if os.path.exists(MEMORY_FILE):
         with open(MEMORY_FILE, "r") as f:
             try: return json.load(f)
-            except: return {"history": [], "balance": 5000, "version": "12.0"}
-    return {"history": ["Brain Core Initialized"], "balance": 5000, "version": "12.0"}
+            except: return {"history": [], "version": "12.0", "settings": {}}
+    return {"history": ["Brain Initialized"], "version": "12.0", "settings": {}}
 
 def save_brain(data):
     with open(MEMORY_FILE, "w") as f:
@@ -26,102 +25,86 @@ def save_brain(data):
 if 'brain' not in st.session_state:
     st.session_state.brain = load_brain()
 
-# --- 2. FAIL-SAFE MODEL PICKER (NotFound Error Solution) ---
-def get_stable_model(api_key):
+# --- 2. SMART MODEL PICKER (404 Error Fix) ---
+def get_working_model(api_key):
     try:
         genai.configure(api_key=api_key)
-        # 404 Fix: Sabse stable rasta call karein
-        return genai.GenerativeModel('gemini-1.5-flash')
-    except:
+        for model_name in ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro']:
+            try:
+                m = genai.GenerativeModel(model_name)
+                m.generate_content("test") 
+                return m
+            except: continue
         return None
+    except: return None
 
-# --- 3. UI STYLE & CONFIG ---
+# --- 3. UI LAYOUT ---
 st.set_page_config(page_title="RABBIT 12.0 - NEURAL CORE", layout="wide")
-st.markdown("<style>.main { background-color: #000; color: #00FFCC; }</style>", unsafe_allow_html=True)
+st.markdown("<style>.main { background-color: #050505; color: #00FFCC; }</style>", unsafe_allow_html=True)
+
+st.title("🛡️ SUPREME COMMANDER - RABBIT 12.0")
 
 with st.sidebar:
-    st.header("🐰 RABBIT MASTER CONTROL")
+    st.header("⚙️ MASTER KEYS")
     gem_key = st.text_input("Gemini API Key:", type="password")
     git_key = st.text_input("GitHub Token:", type="password")
     st.divider()
-    st.subheader("⚙️ System Status")
-    st.info(f"Neural Version: {st.session_state.brain.get('version')}")
-    st.info(f"Guardian Funds: ${st.session_state.brain.get('balance')}")
+    st.write(f"Neural Version: {st.session_state.brain.get('version')}")
+    if st.button("💾 Lock Memory"):
+        save_brain(st.session_state.brain)
+        st.success("Memory Saved to Laptop!")
 
-# --- 4. GITHUB AUTO-PUSH ENGINE ---
-def push_to_github(new_code):
-    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py"
-    url = f"https://api.github.com/repos/{repo}/contents/app.py"
-    headers = {"Authorization": f"token {git_key}"}
-    r = requests.get(url, headers=headers)
-    if r.status_code == 200:
-        sha = r.json()['sha']
-        requests.put(url, headers=headers, json={
-            "message": "Self-Evolution Update",
-            "content": base64.b64encode(new_code.encode()).decode(),
-            "sha": sha
-        })
-        return True
-    return False
+# --- 4. TABS LOGIC ---
+t1, t2, t3 = st.tabs(["🧬 Self-Evolution", "🎬 Multimedia 3D/360", "🧠 System Brain"])
 
-# --- 5. MASTER INTERFACE (Evolution & Multimedia Focus) ---
-st.title("🛡️ SUPREME COMMANDER - RABBIT 12.0")
-tabs = st.tabs(["🧬 Neural Evolution", "🎬 Multimedia 3D/360", "🔐 Guardian & Brain"])
-
-# TAB 0: EVOLUTION (The Thinking Part)
-with tabs[0]:
-    st.header("Brain Expansion & Self-Learning")
-    st.write("Sukhi Ram ji, Rabbit ko naye 'Technical Concepts' sikhaiye.")
-    instruction = st.text_area("Next Evolution Command:", placeholder="Rabbit, 3D photo editor ko aur technical banao...")
-    
+with t1:
+    st.header("Neural Expansion Interface")
+    st.write("Rabbit ko evolve karne ke liye command dein.")
+    cmd = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, 3D effects ko aur behtar banao...")
     if st.button("🚀 INITIATE EVOLUTION"):
-        if instruction and gem_key and git_key:
-            with st.status("Rabbit is Thinking & Rewriting Neural Pathways...") as s:
-                model = get_stable_model(gem_key)
+        if gem_key and git_key and cmd:
+            with st.status("Rabbit is Rewriting Neural Pathways...") as s:
+                model = get_working_model(gem_key)
                 if model:
-                    prompt = f"You are a Self-Evolving AI. Task: {instruction}. Return ONLY raw Python code for app.py. No HCS or exam content."
-                    response = model.generate_content(prompt)
-                    if response.text:
-                        clean_code = response.text.strip().replace("```python", "").replace("```", "")
-                        if push_to_github(clean_code):
-                            st.balloons()
-                            st.session_state.brain["history"].append(f"Evolved: {instruction[:20]}")
-                            save_brain(st.session_state.brain)
-                            s.update(label="Evolution Successful! Refresh in 1 min.", state="complete")
+                    try:
+                        prompt = f"You are a Self-Evolving AI. Task: {cmd}. Return ONLY raw Python code for app.py. No HCS or exam matter."
+                        response = model.generate_content(prompt)
+                        if response.text:
+                            new_code = response.text.strip().replace("```python", "").replace("```", "")
+                            # GitHub Push Logic
+                            repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+                            url = f"https://api.github.com/repos/{repo}/contents/app.py"
+                            headers = {"Authorization": f"token {git_key}"}
+                            r = requests.get(url, headers=headers)
+                            if r.status_code == 200:
+                                sha = r.json()['sha']
+                                encoded = base64.b64encode(new_code.encode()).decode()
+                                requests.put(url, headers=headers, json={"message": "Self-Evolution", "content": encoded, "sha": sha})
+                                st.session_state.brain["history"].append(f"Evolved: {cmd[:20]}")
+                                save_brain(st.session_state.brain)
+                                st.balloons()
+                                s.update(label="Evolution Successful! Refresh in 1 min.", state="complete")
+                    except Exception as e: st.error(f"Logic Error: {e}")
+                else: st.error("Model Connection Failed. Check Key.")
 
-# TAB 1: MULTIMEDIA (Advanced 3D/360)
-with tabs[1]:
-    st.header("Technical 3D & 360° Media Processor")
-    up = st.file_uploader("Upload Image for AI Processing", type=['jpg','png','jpeg'])
-    
-    if up:
-        img = Image.open(up)
-        st.image(img, caption="Original View", use_container_width=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔥 Generate 3D Depth Map"):
-                # Technical Depth Logic
-                img_np = np.array(img.convert('RGB'))
-                shift = 15
-                three_d = np.zeros_like(img_np)
-                three_d[:, shift:, 0] = img_np[:, :-shift, 0] # Red Shift
-                three_d[:, :-shift, 1:] = img_np[:, shift:, 1:] # Cyan Shift
-                st.image(Image.fromarray(three_d), caption="3D Technical Render")
-        with col2:
-            if st.button("🔄 Project 360° Sphere"):
-                st.info("Spherical Mapping Active...")
-                st.code(" [Visualizer: Panoramic 360 Console Active] ")
+with t2:
+    st.header("3D & 360° Media Processor")
+    up_file = st.file_uploader("Upload Image", type=['jpg','png','jpeg'])
+    if up_file:
+        img = Image.open(up_file)
+        st.image(img, caption="Original", use_container_width=True)
+        if st.button("🔥 Process Technical 3D Render"):
+            # Technical Depth Logic
+            img_np = np.array(img.convert('RGB'))
+            shift = 15
+            three_d = np.zeros_like(img_np)
+            three_d[:, shift:, 0] = img_np[:, :-shift, 0] # Red layer
+            three_d[:, :-shift, 1:] = img_np[:, shift:, 1:] # Cyan layer
+            st.image(Image.fromarray(three_d), caption="3D Rendered Output", use_container_width=True)
 
-# TAB 2: GUARDIAN & MEMORY
-with tabs[2]:
-    st.header("Brain Memory & Security")
-    st.metric("Secured Family Funds", f"${st.session_state.brain['balance']}")
-    
-    st.subheader("Neural Logs")
+with t3:
+    st.header("System Brain & Memory Logs")
+    st.write("Laptop Memory Usage: Optimized")
+    st.subheader("Neural History")
     for log in reversed(st.session_state.brain.get("history", [])[-5:]):
         st.caption(f"🧠 {log}")
-    
-    if st.button("Lock Memory & Save"):
-        save_brain(st.session_state.brain)
-        st.success("Memory Locked Successfully!")
