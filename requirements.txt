@@ -2,3 +2,4 @@ opencv-python-headless
 Pillow
 google-generativeai
 requests
+numpy
