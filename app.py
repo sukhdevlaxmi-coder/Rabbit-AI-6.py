@@ -50,7 +50,7 @@ with st.sidebar:
 
 # --- 4. GITHUB AUTO-PUSH ENGINE ---
 def push_to_github(new_code):
-    repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py"
+    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py"
     url = f"https://api.github.com/repos/{repo}/contents/app.py"
     headers = {"Authorization": f"token {git_key}"}
     r = requests.get(url, headers=headers)
