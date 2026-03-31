@@ -16,8 +16,6 @@ def load_brain():
         with open(MEMORY_FILE, "r") as f:
             try: 
                 data = json.load(f)
-                # Ensure 'version' exists
-                if 'version' not in data: data['version'] = "12.0"
                 return data
             except: return {"version": "12.0", "history": [], "balance": 5000}
     return {"version": "12.0", "history": ["System Live"], "balance": 5000}
@@ -33,21 +31,24 @@ if 'brain' not in st.session_state:
 def get_working_model(api_key):
     try:
         genai.configure(api_key=api_key)
+        # Seedha stable model call
         return genai.GenerativeModel('gemini-1.5-flash')
     except: return None
 
 # --- 3. UI STYLE ---
 st.set_page_config(page_title="RABBIT 12.0 - SUPER CODER", layout="wide")
-st.markdown("<style>.main { background-color: #000; color: #00FFCC; }</style>", unsafe_allow_html=True)
+st.markdown("<style>.main { background-color: #000; color: #FFD700; }</style>", unsafe_allow_html=True)
 
 with st.sidebar:
     st.header("🐰 RABBIT MASTER CONSOLE")
     gem_key = st.text_input("Gemini API Key:", type="password")
     git_key = st.text_input("GitHub Token:", type="password")
     st.divider()
-    # Safety Check for Version Display (Fixes Line 45 Error)
-    ver = st.session_state.brain.get('version', '12.0')
-    st.write(f"System Version: **{ver}**")
+    
+    # SAFETY FIX: Using .get() to prevent 'version' error
+    current_ver = st.session_state.brain.get('version', '12.0')
+    st.write(f"System Version: **{current_ver}**")
+    
     if st.button("💾 Sync to Laptop Memory"):
         save_brain(st.session_state.brain)
         st.success("Memory Locked!")
@@ -56,19 +57,19 @@ with st.sidebar:
 st.title("🛡️ SUPREME CODER - RABBIT 12.0")
 tabs = st.tabs(["🧬 Evolution Engine", "🎬 3D/360 Media Lab", "🧠 Neural Logs"])
 
-# TAB 0: EVOLUTION (The Coding Brain)
+# TAB 0: EVOLUTION
 with tabs[0]:
     st.header("Neural Expansion & Auto-Coding")
-    instruction = st.text_area("Next Evolution Command (Hinglish):")
+    instruction = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, 3D photo effects ko aur advance karo...")
     
     if st.button("🚀 EXECUTE EVOLUTION"):
         if instruction and gem_key and git_key:
-            with st.status("Rabbit is Rewriting Itself...") as s:
+            with st.status("Rabbit is Rewriting Neural Pathways...") as s:
                 model = get_working_model(gem_key)
                 if model:
                     try:
                         # Rabbit ko "Best Coder" banane wala prompt
-                        prompt = f"You are Rabbit AI, a Supreme Coder. Task: {instruction}. Rewrite the entire app.py to include this. Use high-end libraries. No HCS/Exams. Return ONLY raw Python code."
+                        prompt = f"You are a Supreme Coder. Task: {instruction}. Rewrite app.py to include this. Use local memory logic. Return ONLY raw Python code."
                         response = model.generate_content(prompt)
                         if response.text:
                             new_code = response.text.strip().replace("```python", "").replace("```", "")
@@ -80,7 +81,7 @@ with tabs[0]:
                             if r.status_code == 200:
                                 sha = r.json()['sha']
                                 requests.put(url, headers=headers, json={
-                                    "message": f"Evolution to {ver}", 
+                                    "message": "Evolution Update", 
                                     "content": base64.b64encode(new_code.encode()).decode(),
                                     "sha": sha
                                 })
