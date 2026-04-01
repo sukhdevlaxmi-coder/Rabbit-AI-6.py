@@ -9,10 +9,9 @@ from google import genai
 from google import genai
 import traceback
 
-if gem_key:
-    new_code = get_ai_code(gem_key, prompt)
-else:
-    st.error("API key daalo")
+def get_ai_code(api_key, prompt):
+    try:
+        client = genai.Client(api_key=api_key)
 
         response = client.models.generate_content(
             model="gemini-1.5-flash",
