@@ -160,8 +160,6 @@ if st.button("🚀 EXECUTE SAFE EVOLUTION"):
         st.warning("Sab fields bharo")
         st.stop()
 
-    model = get_model(gem_key)
-
     if not model:
         st.stop()
 
@@ -183,7 +181,7 @@ if st.button("🚀 EXECUTE SAFE EVOLUTION"):
 
     with st.spinner("AI working..."):
 
-        new_code = get_ai_code(model, prompt)
+        new_code = get_ai_code(gem_key, prompt)
 
         if not new_code:
             st.error("❌ AI ne valid code nahi diya")
