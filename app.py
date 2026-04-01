@@ -39,9 +39,16 @@ if "brain" not in st.session_state:
 def get_model(api_key):
     try:
         genai.configure(api_key=api_key)
-        return genai.GenerativeModel("gemini-1.5-flash")
+
+        models = [m.name for m in genai.list_models()]
+
+        if "models/gemini-1.5-flash" in models:
+            return genai.GenerativeModel("gemini-1.5-flash")
+        else:
+            return genai.GenerativeModel("gemini-pro")
+
     except Exception as e:
-        st.error(f"Model error: {e}")
+        st.error(str(e))
         return None
 
 # ---------------- SAFE RESPONSE ----------------
