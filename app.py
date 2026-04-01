@@ -28,7 +28,7 @@ if 'brain' not in st.session_state:
 
 # --- 2. GITHUB PUSH ENGINE (Fixed Repo Name) ---
 def push_to_github(new_code, git_token):
-    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py" # Verified: A + chota 'l'
+    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py" # Verified: A + chota 'I'
     url = f"https://api.github.com/repos/{repo}/contents/app.py"
     headers = {"Authorization": f"token {git_token}"}
     r = requests.get(url, headers=headers)
