@@ -1,4 +1,4 @@
 opencv-python-headless
 Pillow
-google-generativeai
+genai.GenerativeModel("gemini-pro")
 requests
