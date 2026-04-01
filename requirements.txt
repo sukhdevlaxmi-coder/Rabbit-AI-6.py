@@ -1,4 +1,6 @@
-opencv-python-headless
-Pillow
-genai.GenerativeModel("gemini-pro")
+streamlit
+google-generativeai
 requests
+pillow
+numpy
+opencv-python-headless
