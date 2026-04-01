@@ -1,14 +1,34 @@
 import streamlit as st
-import base64
-import requests
+from google import genai
 import json
 import os
 import traceback
-from datetime import datetime
-from google import genai
-from google import genai
-import traceback
 
+# ---------------- MEMORY ----------------
+MEMORY_FILE = "rabbit_brain_data.json"
+
+def load_brain():
+    if os.path.exists(MEMORY_FILE):
+        try:
+            with open(MEMORY_FILE, "r") as f:
+                data = json.load(f)
+        except:
+            data = {}
+    else:
+        data = {}
+
+    data.setdefault("version", 1.0)
+    data.setdefault("history", ["System Started"])
+    return data
+
+def save_brain(data):
+    with open(MEMORY_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+if "brain" not in st.session_state:
+    st.session_state.brain = load_brain()
+
+# ---------------- AI FUNCTION ----------------
 def get_ai_code(api_key, prompt):
     try:
         client = genai.Client(api_key=api_key)
@@ -26,124 +46,17 @@ def get_ai_code(api_key, prompt):
         return text.strip().replace("```python", "").replace("```", "")
 
     except Exception as e:
-        print(traceback.format_exc())
-        return None
-# ---------------- MEMORY ----------------
-MEMORY_FILE = "rabbit_brain_data.json"
-BACKUP_FILE = "backup_app.py"
-
-def load_brain():
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r") as f:
-                data = json.load(f)
-        except:
-            data = {}
-    else:
-        data = {}
-
-    # DEFAULT VALUES FORCE KARO
-    data.setdefault("version", 1.0)
-    data.setdefault("history", ["System Started"])
-    data.setdefault("errors", [])
-
-    return data
-
-def save_brain(data):
-    with open(MEMORY_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-if "brain" not in st.session_state:
-    st.session_state.brain = load_brain()
-
-# ---------------- GEMINI ----------------
-def get_ai_code(api_key, prompt):
-    try:
-        client = genai.Client(api_key=api_key)
-
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt
-        )
-
-        text = response.text
-
-        if not text:
-            return None
-
-        return text.strip().replace("```python", "").replace("```", "")
-
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return None
-
-# ---------------- SAFE RESPONSE ----------------
-def get_ai_code(model, prompt):
-    try:
-        response = model.generate_content(prompt)
-
-        text = ""
-        if hasattr(response, "text") and response.text:
-            text = response.text
-        else:
-            text = response.candidates[0].content.parts[0].text
-
-        text = text.strip().replace("```python", "").replace("```", "")
-
-        if len(text) < 50:
-            return None
-
-        return text
-
-    except Exception as e:
-        st.error("⚠️ AI response error")
+        st.error("AI response error")
         st.text(traceback.format_exc())
         return None
 
-# ---------------- BACKUP ----------------
-def save_backup(code):
-    with open(BACKUP_FILE, "w") as f:
-        f.write(code)
-
-# ---------------- GITHUB PUSH ----------------
-def push_to_github(code, token):
-    repo = "sukhdevlaxmi-coder/Rabbit-AI-6"  # FIXED
-    path = "app.py"
-
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    headers = {"Authorization": f"token {token}"}
-
-    r = requests.get(url, headers=headers)
-
-    sha = None
-    if r.status_code == 200:
-        sha = r.json()["sha"]
-
-    data = {
-        "message": f"Auto Update {datetime.now()}",
-        "content": base64.b64encode(code.encode()).decode(),
-    }
-
-    if sha:
-        data["sha"] = sha
-
-    res = requests.put(url, headers=headers, json=data)
-
-    if res.status_code in [200, 201]:
-        return True
-    else:
-        st.error(f"GitHub Error: {res.json()}")
-        return False
-
 # ---------------- UI ----------------
-st.set_page_config(page_title="RABBIT AI STABLE", layout="wide")
+st.set_page_config(page_title="RABBIT AI", layout="wide")
 
-st.title("🐰 RABBIT AI - STABLE ENGINE")
+st.title("🐰 RABBIT AI - Stable Version")
 
 with st.sidebar:
     gem_key = st.text_input("Gemini API Key", type="password")
-    git_key = st.text_input("GitHub Token", type="password")
 
     st.write(f"Version: {st.session_state.brain['version']}")
 
@@ -152,58 +65,45 @@ with st.sidebar:
         st.success("Saved")
 
 # ---------------- MAIN ----------------
-instruction = st.text_area("Instruction", placeholder="Add feature...")
+instruction = st.text_area("Instruction", placeholder="Feature add ya bug fix likho...")
 
-if st.button("🚀 EXECUTE SAFE EVOLUTION"):
+if st.button("🚀 EXECUTE"):
 
-    if not (instruction and gem_key and git_key):
-        st.warning("Sab fields bharo")
+    if not gem_key:
+        st.error("API key daalo")
         st.stop()
 
-    if not model:
+    if not instruction:
+        st.warning("Instruction likho")
         st.stop()
 
     prompt = f"""
-    You are a professional Python Streamlit developer.
-
-    TASK:
-    Improve this app safely.
+    Improve this Streamlit app safely.
 
     USER REQUEST:
     {instruction}
 
     RULES:
-    - Return ONLY Python code
-    - No explanation
-    - No markdown
-    - Keep existing structure stable
+    - No infinite loops
+    - Do not break existing code
+    - Only improve required part
+    - Return only Python code
     """
 
     with st.spinner("AI working..."):
-
         new_code = get_ai_code(gem_key, prompt)
 
         if not new_code:
             st.error("❌ AI ne valid code nahi diya")
             st.stop()
 
-        # BACKUP FIRST
-        save_backup(new_code)
+        st.success("✅ Code Generated!")
 
-        success = push_to_github(new_code, git_key)
+        st.code(new_code, language="python")
 
-        if success:
-            st.success("✅ Code Updated Safely!")
-
-            st.session_state.brain["version"] += 0.1
-            st.session_state.brain["history"].append(
-                f"Updated {datetime.now()}"
-            )
-
-            save_brain(st.session_state.brain)
-
-        else:
-            st.error("❌ GitHub push fail")
+        st.session_state.brain["version"] += 0.1
+        st.session_state.brain["history"].append("Update done")
+        save_brain(st.session_state.brain)
 
 # ---------------- LOGS ----------------
 st.subheader("🧠 Logs")
