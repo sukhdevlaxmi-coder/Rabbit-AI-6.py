@@ -12,7 +12,7 @@ def get_ai_code(api_key, prompt):
         client = genai.Client(api_key=api_key)
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-1.5-pro",
             contents=prompt
         )
 
