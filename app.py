@@ -4,128 +4,169 @@ import base64
 import requests
 import json
 import os
-import cv2
-import numpy as np
-from PIL import Image
 import traceback
+from datetime import datetime
 
-# --- 1. PERSISTENT NEURAL MEMORY (Laptop Sync) ---
+# ---------------- MEMORY ----------------
 MEMORY_FILE = "rabbit_brain_data.json"
+BACKUP_FILE = "backup_app.py"
 
 def load_brain():
     if os.path.exists(MEMORY_FILE):
-        with open(MEMORY_FILE, "r") as f:
-            try: 
-                data = json.load(f)
-                data.setdefault("version", 12.0)
-                data.setdefault("history", [])
-                return data
-            except: pass
-    return {"version": 12.0, "history": ["Core Initialized"], "errors_fixed": 0}
+        try:
+            with open(MEMORY_FILE, "r") as f:
+                return json.load(f)
+        except:
+            pass
+    return {"version": 1.0, "history": ["System Started"], "errors": []}
 
 def save_brain(data):
     with open(MEMORY_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-if 'brain' not in st.session_state:
+if "brain" not in st.session_state:
     st.session_state.brain = load_brain()
 
-# --- 2. STABLE BRAIN CONNECT (Anti-404 Logic) ---
-def get_stable_model(api_key):
+# ---------------- GEMINI ----------------
+def get_model(api_key):
     try:
         genai.configure(api_key=api_key)
-        # Seedha stable Gemini Flash model (v1beta bypass)
-        return genai.GenerativeModel('gemini-1.5-flash')
-    except: return None
+        return genai.GenerativeModel("gemini-1.5-flash")
+    except Exception as e:
+        st.error(f"Model error: {e}")
+        return None
 
-# --- 3. AUTO-UPDATE & SELF-CORRECTION ENGINE ---
-def push_to_github(new_code, git_token, msg="Self-Evolution Update"):
-    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py" # Verified: A + Bada 'I'
-    url = f"https://api.github.com/repos/{repo}/contents/app.py"
-    headers = {"Authorization": f"token {git_token}"}
-    
+# ---------------- SAFE RESPONSE ----------------
+def get_ai_code(model, prompt):
+    try:
+        response = model.generate_content(prompt)
+
+        text = ""
+        if hasattr(response, "text") and response.text:
+            text = response.text
+        else:
+            text = response.candidates[0].content.parts[0].text
+
+        text = text.strip().replace("```python", "").replace("```", "")
+
+        if len(text) < 50:
+            return None
+
+        return text
+
+    except Exception as e:
+        st.error("⚠️ AI response error")
+        st.text(traceback.format_exc())
+        return None
+
+# ---------------- BACKUP ----------------
+def save_backup(code):
+    with open(BACKUP_FILE, "w") as f:
+        f.write(code)
+
+# ---------------- GITHUB PUSH ----------------
+def push_to_github(code, token):
+    repo = "sukhdevlaxmi-coder/Rabbit-AI-6"  # FIXED
+    path = "app.py"
+
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
+    headers = {"Authorization": f"token {token}"}
+
     r = requests.get(url, headers=headers)
-    if r.status_code == 200:
-        sha = r.json()['sha']
-        res = requests.put(url, headers=headers, json={
-            "message": msg,
-            "content": base64.b64encode(new_code.encode()).decode(),
-            "sha": sha
-        })
-        return res.status_code == 200
-    return False
 
-# --- 4. UI & STYLE ---
-st.set_page_config(page_title="RABBIT 12.0 SUPREME CODER", layout="wide")
-st.markdown("<style>.main { background-color: #000; color: #00FFCC; }</style>", unsafe_allow_html=True)
+    sha = None
+    if r.status_code == 200:
+        sha = r.json()["sha"]
+
+    data = {
+        "message": f"Auto Update {datetime.now()}",
+        "content": base64.b64encode(code.encode()).decode(),
+    }
+
+    if sha:
+        data["sha"] = sha
+
+    res = requests.put(url, headers=headers, json=data)
+
+    if res.status_code in [200, 201]:
+        return True
+    else:
+        st.error(f"GitHub Error: {res.json()}")
+        return False
+
+# ---------------- UI ----------------
+st.set_page_config(page_title="RABBIT AI STABLE", layout="wide")
+
+st.title("🐰 RABBIT AI - STABLE ENGINE")
 
 with st.sidebar:
-    st.header("🐰 MASTER CONSOLE")
-    gem_key = st.text_input("Gemini API Key:", type="password")
-    git_key = st.text_input("GitHub Token:", type="password")
-    st.divider()
-    st.write(f"System Version: **{st.session_state.brain['version']}**")
-    st.write(f"Errors Fixed: **{st.session_state.brain.get('errors_fixed', 0)}**")
-    if st.button("💾 Sync Memory"):
+    gem_key = st.text_input("Gemini API Key", type="password")
+    git_key = st.text_input("GitHub Token", type="password")
+
+    st.write(f"Version: {st.session_state.brain['version']}")
+
+    if st.button("💾 Save Memory"):
         save_brain(st.session_state.brain)
-        st.success("Laptop Memory Locked!")
+        st.success("Saved")
 
-# --- 5. TABS & LOGIC ---
-t1, t2, t3 = st.tabs(["🧬 Neural Evolution", "🎬 Multimedia 3D/360", "🧠 Brain Logs"])
+# ---------------- MAIN ----------------
+instruction = st.text_area("Instruction", placeholder="Add feature...")
 
-with t1:
-    st.header("Self-Involving Evolution Engine")
-    instruction = st.text_area("Order Rabbit (Hinglish):", placeholder="Rabbit, ek naya real-time face detection module jodo...")
-    
-    if st.button("🚀 EXECUTE EVOLUTION"):
-        if instruction and gem_key and git_key:
-            with st.status("Rabbit is Rewriting Itself...") as s:
-                model = get_stable_model(gem_key)
-                if model:
-                    try:
-                        # Full System Prompt for Self-Evolution
-                        prompt = f"""
-                        You are Rabbit AI 12.0, a Supreme Coder. 
-                        Current Code: {instruction}
-                        TASK: Rewrite the entire app.py for Streamlit.
-                        RULES:
-                        1. Use 'gemini-1.5-flash' ONLY. No v1beta paths.
-                        2. Maintain 'rabbit_brain_data.json' local storage logic.
-                        3. Integrate 3D/360 Multimedia features.
-                        4. Return ONLY raw Python code.
-                        """
-                        response = model.generate_content(prompt)
-                        if response.text:
-                            new_code = response.text.strip().replace("```python", "").replace("```", "")
-                            if push_to_github(new_code, git_key):
-                                st.session_state.brain["version"] += 0.1
-                                st.session_state.brain["history"].append(f"Evolved to {st.session_state.brain['version']}")
-                                save_brain(st.session_state.brain)
-                                st.balloons()
-                                s.update(label="Evolution Complete! 1 min baad refresh karein.", state="complete")
-                    except Exception as e:
-                        st.error(f"Auto-Correction Active: Detecting Error {e}")
-                        # Self-Healing logic could go here to auto-fix 'e'
+if st.button("🚀 EXECUTE SAFE EVOLUTION"):
 
-with t2:
-    st.header("Technical Multimedia Lab")
-    up = st.file_uploader("Upload for 3D processing", type=['jpg','png'])
-    if up:
-        img = Image.open(up)
-        st.image(img, use_container_width=True)
-        if st.button("Apply 3D Depth Render"):
-            # Pixel Shift Logic (Simulated 3D)
-            img_np = np.array(img.convert('RGB'))
-            shift = 15
-            three_d = np.zeros_like(img_np)
-            three_d[:, shift:, 0] = img_np[:, :-shift, 0]
-            three_d[:, :-shift, 1:] = img_np[:, shift:, 1:]
-            st.image(Image.fromarray(three_d), caption="Technical 3D Render")
+    if not (instruction and gem_key and git_key):
+        st.warning("Sab fields bharo")
+        st.stop()
 
-with t3:
-    st.header("Neural Brain Logs")
-    # SAFETY: Using .get() to prevent 'KeyError'
-    history_data = st.session_state.brain.get("history", st.session_state.brain.get("logs", []))
-    for log in reversed(history_data):
-            st.caption(f"🧠 {log}")
-        
+    model = get_model(gem_key)
+
+    if not model:
+        st.stop()
+
+    prompt = f"""
+    You are a professional Python Streamlit developer.
+
+    TASK:
+    Improve this app safely.
+
+    USER REQUEST:
+    {instruction}
+
+    RULES:
+    - Return ONLY Python code
+    - No explanation
+    - No markdown
+    - Keep existing structure stable
+    """
+
+    with st.spinner("AI working..."):
+
+        new_code = get_ai_code(model, prompt)
+
+        if not new_code:
+            st.error("❌ AI ne valid code nahi diya")
+            st.stop()
+
+        # BACKUP FIRST
+        save_backup(new_code)
+
+        success = push_to_github(new_code, git_key)
+
+        if success:
+            st.success("✅ Code Updated Safely!")
+
+            st.session_state.brain["version"] += 0.1
+            st.session_state.brain["history"].append(
+                f"Updated {datetime.now()}"
+            )
+
+            save_brain(st.session_state.brain)
+
+        else:
+            st.error("❌ GitHub push fail")
+
+# ---------------- LOGS ----------------
+st.subheader("🧠 Logs")
+
+for log in reversed(st.session_state.brain["history"]):
+    st.text(log)
