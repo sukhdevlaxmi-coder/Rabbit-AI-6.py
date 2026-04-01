@@ -1,5 +1,4 @@
 import streamlit as st
-import google.generativeai as genai
 import base64
 import requests
 import json
@@ -19,7 +18,7 @@ def get_ai_code(api_key, prompt):
 
         text = response.text
 
-        if not text:
+        if not text or len(text) < 20:
             return None
 
         return text.strip().replace("```python", "").replace("```", "")
