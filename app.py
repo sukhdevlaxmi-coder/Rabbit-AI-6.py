@@ -168,5 +168,5 @@ if st.button("🚀 EXECUTE SAFE EVOLUTION"):
 # ---------------- LOGS ----------------
 st.subheader("🧠 Logs")
 
-for log in reversed(st.session_state.brain["history"]):
+for log in reversed(st.session_state.brain.get("history", [])):
     st.text(log)
