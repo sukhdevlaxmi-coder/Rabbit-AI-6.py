@@ -124,5 +124,8 @@ with t2:
 
 with t3:
     st.header("Neural Brain Logs")
-    for log in reversed(st.session_state.brain["history"]):
-        st.caption(f"🧠 {log}")
+    # SAFETY: Using .get() to prevent 'KeyError'
+    history_data = st.session_state.brain.get("history", st.session_state.brain.get("logs", []))
+    for log in reversed(history_data):
+            st.caption(f"🧠 {log}")
+        
