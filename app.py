@@ -6,15 +6,19 @@ import os
 import traceback
 from datetime import datetime
 from google import genai
+from google import genai
+import traceback
 
-client = genai.Client(api_key=api_key)
+def get_ai_code(api_key, prompt):
+    try:
+        client = genai.Client(api_key=api_key)
 
-response = client.models.generate_content(
-    model="gemini-1.5-flash",
-    contents="Hello bhai"
-)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
 
-print(response.text)
+        text = response.text
 
         if not text or len(text) < 20:
             return None
@@ -22,10 +26,8 @@ print(response.text)
         return text.strip().replace("```python", "").replace("```", "")
 
     except Exception as e:
-        import traceback
         print(traceback.format_exc())
         return None
-
 # ---------------- MEMORY ----------------
 MEMORY_FILE = "rabbit_brain_data.json"
 BACKUP_FILE = "backup_app.py"
