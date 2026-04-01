@@ -15,10 +15,18 @@ def load_brain():
     if os.path.exists(MEMORY_FILE):
         try:
             with open(MEMORY_FILE, "r") as f:
-                return json.load(f)
+                data = json.load(f)
         except:
-            pass
-    return {"version": 1.0, "history": ["System Started"], "errors": []}
+            data = {}
+    else:
+        data = {}
+
+    # DEFAULT VALUES FORCE KARO
+    data.setdefault("version", 1.0)
+    data.setdefault("history", ["System Started"])
+    data.setdefault("errors", [])
+
+    return data
 
 def save_brain(data):
     with open(MEMORY_FILE, "w") as f:
