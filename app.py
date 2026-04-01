@@ -7,16 +7,14 @@ import traceback
 from datetime import datetime
 from google import genai
 
-def get_ai_code(api_key, prompt):
-    try:
-        client = genai.Client(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
-        response = client.models.generate_content(
-            model="gemini-1.5-pro",
-            contents=prompt
-        )
+response = client.models.generate_content(
+    model="gemini-1.5-flash",
+    contents="Hello bhai"
+)
 
-        text = response.text
+print(response.text)
 
         if not text or len(text) < 20:
             return None
