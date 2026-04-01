@@ -6,6 +6,28 @@ import json
 import os
 import traceback
 from datetime import datetime
+from google import genai
+
+def get_ai_code(api_key, prompt):
+    try:
+        client = genai.Client(api_key=api_key)
+
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
+
+        text = response.text
+
+        if not text:
+            return None
+
+        return text.strip().replace("```python", "").replace("```", "")
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return None
 
 # ---------------- MEMORY ----------------
 MEMORY_FILE = "rabbit_brain_data.json"
@@ -43,7 +65,7 @@ def get_model(api_key):
         models = [m.name for m in genai.list_models()]
 
         if "models/gemini-1.5-flash" in models:
-            return genai.GenerativeModel("gemini-1.5-flash")
+            genai.GenerativeModel("models/gemini-1.5-flash")
         else:
             return genai.GenerativeModel("gemini-pro")
 
