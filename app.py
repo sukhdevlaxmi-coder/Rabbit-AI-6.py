@@ -40,7 +40,7 @@ def get_stable_model(api_key):
 
 # --- 3. AUTO-UPDATE & SELF-CORRECTION ENGINE ---
 def push_to_github(new_code, git_token, msg="Self-Evolution Update"):
-    repo = "sukhdevlaxmi-coder/Rabbit-Al-6.py" # Verified: A + chota 'l'
+    repo = "sukhdevlaxmi-coder/Rabbit-AI-6.py" # Verified: A + Bada 'I'
     url = f"https://api.github.com/repos/{repo}/contents/app.py"
     headers = {"Authorization": f"token {git_token}"}
     
