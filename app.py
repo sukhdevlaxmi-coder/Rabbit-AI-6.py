@@ -45,13 +45,13 @@ def get_ai_code(api_key, prompt):
 
         return text.strip().replace("```python", "").replace("```", "")
 
-except Exception as e:
-    if "API key expired" in str(e):
-        st.error("❌ API Key expire ho gayi hai, nayi key dalo")
-    else:
-        st.error("AI Error")
-        st.text(traceback.format_exc())
-    return None
+    except Exception as e:
+        if "API key expired" in str(e):
+            st.error("❌ API Key expire ho gayi hai, nayi key dalo")
+        else:
+            st.error("AI Error")
+            st.text(traceback.format_exc())
+        return None
 
 # ---------------- UI ----------------
 st.set_page_config(page_title="RABBIT AI", layout="wide")
