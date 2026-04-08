@@ -45,7 +45,7 @@ def get_ai_code(api_key, prompt):
 
         return text.strip().replace("```python", "").replace("```", "")
 
-    except Exception as e:
+except Exception as e:
     if "API key expired" in str(e):
         st.error("❌ API Key expire ho gayi hai, nayi key dalo")
     else:
