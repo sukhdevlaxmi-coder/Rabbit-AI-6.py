@@ -1,6 +1,4 @@
-streamlit
-google-genai
-requests
-pillow
-numpy
-opencv-python-headless
+google-cloud-vision
+google-auth
+groq
+python-telegram-bot
